@@ -1,9 +1,13 @@
 vdom
 ====
 
-vdom is a virtual dom implementation written in go which is compatible with gopherjs.
-It's inspired by react.js. The primary purpose of vdom is to eventually improve the
-performance of view rendering in [humble](https://github.com/soroushjp/humble).
+vdom is a virtual dom implementation written in go which is compatible with
+[gopherjs](http://www.gopherjs.org/). It's inspired by
+[react.js](http://facebook.github.io/react/) but is not a direct port of the
+react virtual dom. The primary purpose of vdom is to eventually improve the
+performance of view rendering in [humble](https://github.com/soroushjp/humble),
+a framework that lets you write frontend web apps in pure go and compile them to
+js to be run in the browser.
 
 This is a relatively big undertaking, but luckily the virtual dom concept is easy
 to split into loosely connected parts:
