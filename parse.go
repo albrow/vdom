@@ -99,10 +99,57 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			tree.Root = text
 		}
 	case xml.Comment:
-
+		xmlComment := token.(xml.Comment)
+		// Parse the value of the text from the xml.CharData
+		comment := &Comment{
+			Value: []byte(xmlComment.Copy()),
+		}
+		if currentParent != nil {
+			// Set this element's parent
+			comment.parent = currentParent
+			// Add this element to the currentParent's children
+			currentParent.children = append(currentParent.children, comment)
+		}
+		if tree.Root == nil {
+			// If this is the first element we've come accross, it is
+			// the root of the tree
+			tree.Root = comment
+		}
 	case xml.ProcInst:
-
+		xmlProcInst := token.(xml.ProcInst)
+		// Parse the value of the text from the xml.CharData
+		proc := &ProcInst{
+			Target: xmlProcInst.Target,
+			Inst:   xmlProcInst.Inst,
+		}
+		if currentParent != nil {
+			// Set this element's parent
+			proc.parent = currentParent
+			// Add this element to the currentParent's children
+			currentParent.children = append(currentParent.children, proc)
+		}
+		if tree.Root == nil {
+			// If this is the first element we've come accross, it is
+			// the root of the tree
+			tree.Root = proc
+		}
 	case xml.Directive:
+		xmlDir := token.(xml.Directive)
+		// Parse the value of the text from the xml.CharData
+		dir := &Directive{
+			Value: []byte(xmlDir.Copy()),
+		}
+		if currentParent != nil {
+			// Set this element's parent
+			dir.parent = currentParent
+			// Add this element to the currentParent's children
+			currentParent.children = append(currentParent.children, dir)
+		}
+		if tree.Root == nil {
+			// If this is the first element we've come accross, it is
+			// the root of the tree
+			tree.Root = dir
+		}
 	}
 	return currentParent, nil
 }

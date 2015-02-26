@@ -9,11 +9,21 @@ import (
 
 func TestParse(t *testing.T) {
 	testCases := []struct {
+		name         string
 		reader       io.Reader
 		expectedTree *Tree
 	}{
 		{
-			// A single text node
+			name:   "Element root",
+			reader: bytes.NewBuffer([]byte("<div></div>")),
+			expectedTree: &Tree{
+				Root: &Element{
+					Name: "div",
+				},
+			},
+		},
+		{
+			name:   "Text root",
 			reader: bytes.NewBuffer([]byte("Hello")),
 			expectedTree: &Tree{
 				Root: &Text{
@@ -22,7 +32,35 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
-			// HTML with nested elements
+			name:   "Comment root",
+			reader: bytes.NewBuffer([]byte("<!--comment-->")),
+			expectedTree: &Tree{
+				Root: &Comment{
+					Value: []byte("comment"),
+				},
+			},
+		},
+		{
+			name:   "ProcInst root",
+			reader: bytes.NewBuffer([]byte("<?target inst?>")),
+			expectedTree: &Tree{
+				Root: &ProcInst{
+					Target: "target",
+					Inst:   []byte("inst"),
+				},
+			},
+		},
+		{
+			name:   "Directive root",
+			reader: bytes.NewBuffer([]byte("<!doctype html>")),
+			expectedTree: &Tree{
+				Root: &Directive{
+					Value: []byte("doctype html"),
+				},
+			},
+		},
+		{
+			name:   "ul with nested li's",
 			reader: bytes.NewBuffer([]byte("<ul><li>one</li><li>two</li><li>three</li></ul>")),
 			expectedTree: &Tree{
 				Root: &Element{
@@ -58,7 +96,7 @@ func TestParse(t *testing.T) {
 			},
 		},
 	}
-	for _, tc := range testCases {
+	for i, tc := range testCases {
 		// Parse the input from tc.reader
 		gotTree, err := Parse(tc.reader)
 		if err != nil {
@@ -66,7 +104,7 @@ func TestParse(t *testing.T) {
 		}
 		// Check that the resulting tree matches what we expect
 		if match, msg := tc.expectedTree.Compare(gotTree); !match {
-			t.Errorf("HTML was not parsed correctly.\n%s", msg)
+			t.Errorf("Error in test case %d (%s): HTML was not parsed correctly.\n%s", i, tc.name, msg)
 		}
 	}
 }
