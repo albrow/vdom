@@ -1,7 +1,6 @@
 package vdom
 
 import (
-	"encoding/xml"
 	"fmt"
 	"reflect"
 )
@@ -15,9 +14,14 @@ type Node interface {
 	Children() []Node
 }
 
+type Attr struct {
+	Name  string
+	Value string
+}
+
 type Element struct {
 	Name     string
-	Attrs    []xml.Attr
+	Attrs    []Attr
 	parent   Node
 	children []Node
 }

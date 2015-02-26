@@ -2,7 +2,6 @@ package vdom
 
 import (
 	"bytes"
-	"encoding/xml"
 	"io"
 	"testing"
 )
@@ -64,8 +63,7 @@ func TestParse(t *testing.T) {
 			reader: bytes.NewBuffer([]byte("<ul><li>one</li><li>two</li><li>three</li></ul>")),
 			expectedTree: &Tree{
 				Root: &Element{
-					Name:  "ul",
-					Attrs: []xml.Attr{},
+					Name: "ul",
 					children: []Node{
 						&Element{
 							Name: "li",
@@ -91,6 +89,20 @@ func TestParse(t *testing.T) {
 								},
 							},
 						},
+					},
+				},
+			},
+		},
+		{
+			name:   "Element with attrs",
+			reader: bytes.NewBuffer([]byte(`<div class="container" id="main" data-custom-attr="foo"></div>`)),
+			expectedTree: &Tree{
+				Root: &Element{
+					Name: "div",
+					Attrs: []Attr{
+						{Name: "class", Value: "container"},
+						{Name: "id", Value: "main"},
+						{Name: "data-custom-attr", Value: "foo"},
 					},
 				},
 			},

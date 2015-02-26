@@ -41,8 +41,13 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		// Parse the name and attrs directly from the xml.StartElement
 		startEl := token.(xml.StartElement)
 		el := &Element{
-			Name:  parseName(startEl.Name),
-			Attrs: startEl.Attr,
+			Name: parseName(startEl.Name),
+		}
+		for _, attr := range startEl.Attr {
+			el.Attrs = append(el.Attrs, Attr{
+				Name:  parseName(attr.Name),
+				Value: attr.Value,
+			})
 		}
 		if currentParent != nil {
 			// Set this element's parent
