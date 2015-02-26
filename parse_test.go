@@ -128,6 +128,34 @@ func TestParse(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:   "Form with autoclosed tags",
+			reader: bytes.NewBuffer([]byte(`<form method="post"><input type="text" name="firstName"><input type="text" name="lastName"></form>`)),
+			expectedTree: &Tree{
+				Root: &Element{
+					Name: "form",
+					Attrs: []Attr{
+						{Name: "method", Value: "post"},
+					},
+					children: []Node{
+						&Element{
+							Name: "input",
+							Attrs: []Attr{
+								{Name: "type", Value: "text"},
+								{Name: "name", Value: "firstName"},
+							},
+						},
+						&Element{
+							Name: "input",
+							Attrs: []Attr{
+								{Name: "type", Value: "text"},
+								{Name: "name", Value: "lastName"},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	// Iterate through each test case
 	for i, tc := range testCases {
