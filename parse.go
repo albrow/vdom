@@ -93,6 +93,11 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			// Add this element to the currentParent's children
 			currentParent.children = append(currentParent.children, text)
 		}
+		if tree.Root == nil {
+			// If this is the first element we've come accross, it is
+			// the root of the tree
+			tree.Root = text
+		}
 	case xml.Comment:
 
 	case xml.ProcInst:
