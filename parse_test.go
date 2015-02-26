@@ -7,6 +7,10 @@ import (
 )
 
 func TestParse(t *testing.T) {
+	// We'll use table-driven testing here.
+	// Each test case consists of a human-readable name,
+	// a reader which holds html data, and the tree structure
+	// that we expect after calling Parse.
 	testCases := []struct {
 		name         string
 		reader       io.Reader
@@ -125,6 +129,7 @@ func TestParse(t *testing.T) {
 			},
 		},
 	}
+	// Iterate through each test case
 	for i, tc := range testCases {
 		// Parse the input from tc.reader
 		gotTree, err := Parse(tc.reader)

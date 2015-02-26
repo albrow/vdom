@@ -6,6 +6,10 @@ import (
 	"io"
 )
 
+// Parse reads escaped html from io.Reader and returns a tree structure representing
+// it. It returns an error if there was a problem parsing the html. The html read from
+// r must only contain one root node. If it contains more than one root node, only the
+// first node and its children will exist in the tree structure.
 func Parse(r io.Reader) (*Tree, error) {
 	// Create a xml.Decoder to read from r
 	dec := xml.NewDecoder(r)
@@ -13,13 +17,13 @@ func Parse(r io.Reader) (*Tree, error) {
 	dec.Strict = false
 	dec.AutoClose = xml.HTMLAutoClose
 
-	// TODO: Iterate through each token and construct the tree
+	// Iterate through each token and construct the tree
 	tree := &Tree{}
 	var currentParent *Element = nil
 	for token, err := dec.Token(); ; token, err = dec.Token() {
 		if err != nil {
 			if err == io.EOF {
-				// We reahed the end of the document we were parsing
+				// We reached the end of the document we were parsing
 				break
 			} else {
 				// There was some unexpected error
@@ -35,6 +39,9 @@ func Parse(r io.Reader) (*Tree, error) {
 	return tree, nil
 }
 
+// parseToken parses a single token and adds the appropriate node(s) to the tree. When calling
+// parseToken iteratively, you should always capture the nextParent return and use it as the
+// currentParent argument in the next iteration.
 func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent *Element, err error) {
 	switch token.(type) {
 	case xml.StartElement:
@@ -88,7 +95,7 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		currentParent = parentEl
 	case xml.CharData:
 		charData := token.(xml.CharData)
-		// Parse the value of the text from the xml.CharData
+		// Parse the value from the xml.CharData
 		text := &Text{
 			Value: []byte(charData.Copy()),
 		}
@@ -105,7 +112,7 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		}
 	case xml.Comment:
 		xmlComment := token.(xml.Comment)
-		// Parse the value of the text from the xml.CharData
+		// Parse the value from the xml.Comment
 		comment := &Comment{
 			Value: []byte(xmlComment.Copy()),
 		}
@@ -122,7 +129,7 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		}
 	case xml.ProcInst:
 		xmlProcInst := token.(xml.ProcInst)
-		// Parse the value of the text from the xml.CharData
+		// Parse the value from the xml.ProcInst
 		proc := &ProcInst{
 			Target: xmlProcInst.Target,
 			Inst:   xmlProcInst.Inst,
@@ -140,7 +147,7 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		}
 	case xml.Directive:
 		xmlDir := token.(xml.Directive)
-		// Parse the value of the text from the xml.CharData
+		// Parse the value from the xml.Directive
 		dir := &Directive{
 			Value: []byte(xmlDir.Copy()),
 		}
@@ -159,6 +166,9 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 	return currentParent, nil
 }
 
+// parseName converts an xml.Name to a single string name. For our
+// purposes we are not interested in the different namespaces, and
+// just need to treat the name as a single string.
 func parseName(name xml.Name) string {
 	if name.Space != "" {
 		return fmt.Sprintf("%s:%s", name.Space, name.Local)
