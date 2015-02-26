@@ -107,6 +107,23 @@ func TestParse(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:   "Script tag with escaped characters",
+			reader: bytes.NewBuffer([]byte(`<script type="text/javascript">function((){console.log("&lt;Hello brackets&gt;")})()</script>`)),
+			expectedTree: &Tree{
+				Root: &Element{
+					Name: "script",
+					Attrs: []Attr{
+						{Name: "type", Value: "text/javascript"},
+					},
+					children: []Node{
+						&Text{
+							Value: []byte(`function((){console.log("<Hello brackets>")})()`),
+						},
+					},
+				},
+			},
+		},
 	}
 	for i, tc := range testCases {
 		// Parse the input from tc.reader
