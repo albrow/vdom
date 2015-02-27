@@ -21,8 +21,10 @@ func TestParse(t *testing.T) {
 			name: "Element root",
 			src:  []byte("<div></div>"),
 			expectedTree: &Tree{
-				Root: &Element{
-					Name: "div",
+				Roots: []Node{
+					&Element{
+						Name: "div",
+					},
 				},
 			},
 		},
@@ -30,8 +32,10 @@ func TestParse(t *testing.T) {
 			name: "Text root",
 			src:  []byte("Hello"),
 			expectedTree: &Tree{
-				Root: &Text{
-					Value: []byte("Hello"),
+				Roots: []Node{
+					&Text{
+						Value: []byte("Hello"),
+					},
 				},
 			},
 		},
@@ -39,8 +43,10 @@ func TestParse(t *testing.T) {
 			name: "Comment root",
 			src:  []byte("<!--comment-->"),
 			expectedTree: &Tree{
-				Root: &Comment{
-					Value: []byte("comment"),
+				Roots: []Node{
+					&Comment{
+						Value: []byte("comment"),
+					},
 				},
 			},
 		},
@@ -48,9 +54,11 @@ func TestParse(t *testing.T) {
 			name: "ProcInst root",
 			src:  []byte("<?target inst?>"),
 			expectedTree: &Tree{
-				Root: &ProcInst{
-					Target: "target",
-					Inst:   []byte("inst"),
+				Roots: []Node{
+					&ProcInst{
+						Target: "target",
+						Inst:   []byte("inst"),
+					},
 				},
 			},
 		},
@@ -58,8 +66,10 @@ func TestParse(t *testing.T) {
 			name: "Directive root",
 			src:  []byte("<!doctype html>"),
 			expectedTree: &Tree{
-				Root: &Directive{
-					Value: []byte("doctype html"),
+				Roots: []Node{
+					&Directive{
+						Value: []byte("doctype html"),
+					},
 				},
 			},
 		},
@@ -67,30 +77,32 @@ func TestParse(t *testing.T) {
 			name: "ul with nested li's",
 			src:  []byte("<ul><li>one</li><li>two</li><li>three</li></ul>"),
 			expectedTree: &Tree{
-				Root: &Element{
-					Name: "ul",
-					children: []Node{
-						&Element{
-							Name: "li",
-							children: []Node{
-								&Text{
-									Value: []byte("one"),
+				Roots: []Node{
+					&Element{
+						Name: "ul",
+						children: []Node{
+							&Element{
+								Name: "li",
+								children: []Node{
+									&Text{
+										Value: []byte("one"),
+									},
 								},
 							},
-						},
-						&Element{
-							Name: "li",
-							children: []Node{
-								&Text{
-									Value: []byte("two"),
+							&Element{
+								Name: "li",
+								children: []Node{
+									&Text{
+										Value: []byte("two"),
+									},
 								},
 							},
-						},
-						&Element{
-							Name: "li",
-							children: []Node{
-								&Text{
-									Value: []byte("three"),
+							&Element{
+								Name: "li",
+								children: []Node{
+									&Text{
+										Value: []byte("three"),
+									},
 								},
 							},
 						},
@@ -102,12 +114,14 @@ func TestParse(t *testing.T) {
 			name: "Element with attrs",
 			src:  []byte(`<div class="container" id="main" data-custom-attr="foo"></div>`),
 			expectedTree: &Tree{
-				Root: &Element{
-					Name: "div",
-					Attrs: []Attr{
-						{Name: "class", Value: "container"},
-						{Name: "id", Value: "main"},
-						{Name: "data-custom-attr", Value: "foo"},
+				Roots: []Node{
+					&Element{
+						Name: "div",
+						Attrs: []Attr{
+							{Name: "class", Value: "container"},
+							{Name: "id", Value: "main"},
+							{Name: "data-custom-attr", Value: "foo"},
+						},
 					},
 				},
 			},
@@ -116,14 +130,16 @@ func TestParse(t *testing.T) {
 			name: "Script tag with escaped characters",
 			src:  []byte(`<script type="text/javascript">function((){console.log("&lt;Hello brackets&gt;")})()</script>`),
 			expectedTree: &Tree{
-				Root: &Element{
-					Name: "script",
-					Attrs: []Attr{
-						{Name: "type", Value: "text/javascript"},
-					},
-					children: []Node{
-						&Text{
-							Value: []byte(`function((){console.log("<Hello brackets>")})()`),
+				Roots: []Node{
+					&Element{
+						Name: "script",
+						Attrs: []Attr{
+							{Name: "type", Value: "text/javascript"},
+						},
+						children: []Node{
+							&Text{
+								Value: []byte(`function((){console.log("<Hello brackets>")})()`),
+							},
 						},
 					},
 				},
@@ -133,26 +149,52 @@ func TestParse(t *testing.T) {
 			name: "Form with autoclosed tags",
 			src:  []byte(`<form method="post"><input type="text" name="firstName"><input type="text" name="lastName"></form>`),
 			expectedTree: &Tree{
-				Root: &Element{
-					Name: "form",
-					Attrs: []Attr{
-						{Name: "method", Value: "post"},
+				Roots: []Node{
+					&Element{
+						Name: "form",
+						Attrs: []Attr{
+							{Name: "method", Value: "post"},
+						},
+						children: []Node{
+							&Element{
+								Name: "input",
+								Attrs: []Attr{
+									{Name: "type", Value: "text"},
+									{Name: "name", Value: "firstName"},
+								},
+							},
+							&Element{
+								Name: "input",
+								Attrs: []Attr{
+									{Name: "type", Value: "text"},
+									{Name: "name", Value: "lastName"},
+								},
+							},
+						},
 					},
-					children: []Node{
-						&Element{
-							Name: "input",
-							Attrs: []Attr{
-								{Name: "type", Value: "text"},
-								{Name: "name", Value: "firstName"},
-							},
-						},
-						&Element{
-							Name: "input",
-							Attrs: []Attr{
-								{Name: "type", Value: "text"},
-								{Name: "name", Value: "lastName"},
-							},
-						},
+				},
+			},
+		},
+		{
+			name: "Multiple roots",
+			src:  []byte("<!doctype html><div></div>Hello<!--comment--><?target inst?>"),
+			expectedTree: &Tree{
+				Roots: []Node{
+					&Directive{
+						Value: []byte("doctype html"),
+					},
+					&Element{
+						Name: "div",
+					},
+					&Text{
+						Value: []byte("Hello"),
+					},
+					&Comment{
+						Value: []byte("comment"),
+					},
+					&ProcInst{
+						Target: "target",
+						Inst:   []byte("inst"),
 					},
 				},
 			},
@@ -190,7 +232,7 @@ func TestHTML(t *testing.T) {
 			src:  []byte("<div></div>"),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte("<div></div>")
-				return expectHTMLEquals(expectedHTML, tree.Root.HTML(), "root element")
+				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root element")
 			},
 		},
 		{
@@ -198,7 +240,7 @@ func TestHTML(t *testing.T) {
 			src:  []byte("Hello"),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte("Hello")
-				return expectHTMLEquals(expectedHTML, tree.Root.HTML(), "root text node")
+				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root text node")
 			},
 		},
 		{
@@ -206,7 +248,7 @@ func TestHTML(t *testing.T) {
 			src:  []byte("<!--comment-->"),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte("<!--comment-->")
-				return expectHTMLEquals(expectedHTML, tree.Root.HTML(), "root comment node")
+				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root comment node")
 			},
 		},
 		{
@@ -214,7 +256,7 @@ func TestHTML(t *testing.T) {
 			src:  []byte("<?target inst?>"),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte("<?target inst?>")
-				return expectHTMLEquals(expectedHTML, tree.Root.HTML(), "root proc inst")
+				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root proc inst")
 			},
 		},
 		{
@@ -222,7 +264,7 @@ func TestHTML(t *testing.T) {
 			src:  []byte("<!doctype html>"),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte("<!doctype html>")
-				return expectHTMLEquals(expectedHTML, tree.Root.HTML(), "root directive")
+				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root directive")
 			},
 		},
 		{
@@ -232,11 +274,11 @@ func TestHTML(t *testing.T) {
 				{
 					// Test the root of the tree, the ul element
 					expectedHTML := []byte("<ul><li>one</li><li>two</li><li>three</li></ul>")
-					if err := expectHTMLEquals(expectedHTML, tree.Root.HTML(), "the root ul element"); err != nil {
+					if err := expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "the root ul element"); err != nil {
 						return err
 					}
 				}
-				lis := tree.Root.Children()
+				lis := tree.Roots[0].Children()
 				{
 					// Test each li element
 					expectedHTML := [][]byte{
@@ -274,7 +316,7 @@ func TestHTML(t *testing.T) {
 			src:  []byte(`<div class="container" id="main" data-custom-attr="foo"></div>`),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte(`<div class="container" id="main" data-custom-attr="foo"></div>`)
-				return expectHTMLEquals(expectedHTML, tree.Root.HTML(), "root element")
+				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root element")
 			},
 		},
 		{
@@ -284,14 +326,14 @@ func TestHTML(t *testing.T) {
 				{
 					// Test the root element
 					expectedHTML := []byte(`<script type="text/javascript">function((){console.log("<Hello brackets>")})()</script>`)
-					if err := expectHTMLEquals(expectedHTML, tree.Root.HTML(), "root script element"); err != nil {
+					if err := expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root script element"); err != nil {
 						return err
 					}
 				}
 				{
 					// Test the text node inside the root element
 					expectedHTML := []byte(`function((){console.log("<Hello brackets>")})()`)
-					if err := expectHTMLEquals(expectedHTML, tree.Root.Children()[0].HTML(), "text node inside script element"); err != nil {
+					if err := expectHTMLEquals(expectedHTML, tree.Roots[0].Children()[0].HTML(), "text node inside script element"); err != nil {
 						return err
 					}
 				}
@@ -305,12 +347,12 @@ func TestHTML(t *testing.T) {
 				{
 					// Test the root element
 					expectedHTML := []byte(`<form method="post"><input type="text" name="firstName"><input type="text" name="lastName"></form>`)
-					if err := expectHTMLEquals(expectedHTML, tree.Root.HTML(), "root script element"); err != nil {
+					if err := expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root script element"); err != nil {
 						return err
 					}
 				}
 				{
-					inputs := tree.Root.Children()
+					inputs := tree.Roots[0].Children()
 					// Test each child input element
 					expectedHTML := [][]byte{
 						[]byte(`<input type="text" name="firstName">`),
@@ -321,6 +363,26 @@ func TestHTML(t *testing.T) {
 						if err := expectHTMLEquals(expectedHTML[i], input.HTML(), desc); err != nil {
 							return err
 						}
+					}
+				}
+				return nil
+			},
+		},
+		{
+			name: "Multiple roots",
+			src:  []byte("<!doctype html><div></div>Hello<!--comment--><?target inst?>"),
+			testFunc: func(tree *Tree) error {
+				expectedHTML := [][]byte{
+					[]byte(`<!doctype html>`),
+					[]byte(`<div></div>`),
+					[]byte(`Hello`),
+					[]byte(`<!--comment-->`),
+					[]byte(`<?target inst?>`),
+				}
+				for i, root := range tree.Roots {
+					desc := fmt.Sprintf("root node %d of type %T", i, root)
+					if err := expectHTMLEquals(expectedHTML[i], root.HTML(), desc); err != nil {
+						return err
 					}
 				}
 				return nil

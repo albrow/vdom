@@ -7,9 +7,7 @@ import (
 )
 
 // Parse reads escaped html from src and returns a tree structure representing
-// it. It returns an error if there was a problem parsing the html. The html in
-// src must only contain one root node. If it contains more than one root node, only the
-// first node and its children will exist in the tree structure.
+// it. It returns an error if there was a problem parsing the html.
 func Parse(src []byte) (*Tree, error) {
 	// Create a xml.Decoder to read from an IndexedByteReader
 	r := NewIndexedByteReader(src)
@@ -44,6 +42,7 @@ func Parse(src []byte) (*Tree, error) {
 // parseToken iteratively, you should always capture the nextParent return and use it as the
 // currentParent argument in the next iteration.
 func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent *Element, err error) {
+	var resultingNode Node
 	switch token.(type) {
 	case xml.StartElement:
 		// Parse the name and attrs directly from the xml.StartElement
@@ -64,11 +63,6 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			// Add this element to the currentParent's children
 			currentParent.children = append(currentParent.children, el)
 		}
-		if tree.Root == nil {
-			// If this is the first element we've come accross, it is
-			// the root of the tree
-			tree.Root = el
-		}
 		// Set the srcStart to indicate where in tree.src the html for this element
 		// starts. To do this, start from the current offset and find the first preceding
 		// tag open (the '<' character)
@@ -79,7 +73,8 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		el.srcStart = start
 		// Set this element to the nextParent. The next node(s) we find
 		// are children of this element until we reach xml.EndElement
-		return el, nil
+		nextParent = el
+		resultingNode = el
 	case xml.EndElement:
 		// Assuming the xml is well-formed, this marks the end of the current
 		// parent
@@ -116,7 +111,7 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 				return nil, fmt.Errorf("Expected parent to be type *Element, but got type %T", currentParent.parent)
 			}
 		}
-		currentParent = parentParent
+		nextParent = parentParent
 	case xml.CharData:
 		charData := token.(xml.CharData)
 		// Parse the value from the xml.CharData
@@ -129,11 +124,8 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			// Add this element to the currentParent's children
 			currentParent.children = append(currentParent.children, text)
 		}
-		if tree.Root == nil {
-			// If this is the first element we've come accross, it is
-			// the root of the tree
-			tree.Root = text
-		}
+		resultingNode = text
+		nextParent = currentParent
 	case xml.Comment:
 		xmlComment := token.(xml.Comment)
 		// Parse the value from the xml.Comment
@@ -146,11 +138,8 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			// Add this element to the currentParent's children
 			currentParent.children = append(currentParent.children, comment)
 		}
-		if tree.Root == nil {
-			// If this is the first element we've come accross, it is
-			// the root of the tree
-			tree.Root = comment
-		}
+		resultingNode = comment
+		nextParent = currentParent
 	case xml.ProcInst:
 		xmlProcInst := token.(xml.ProcInst)
 		// Parse the value from the xml.ProcInst
@@ -164,11 +153,8 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			// Add this element to the currentParent's children
 			currentParent.children = append(currentParent.children, proc)
 		}
-		if tree.Root == nil {
-			// If this is the first element we've come accross, it is
-			// the root of the tree
-			tree.Root = proc
-		}
+		resultingNode = proc
+		nextParent = currentParent
 	case xml.Directive:
 		xmlDir := token.(xml.Directive)
 		// Parse the value from the xml.Directive
@@ -181,13 +167,14 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			// Add this element to the currentParent's children
 			currentParent.children = append(currentParent.children, dir)
 		}
-		if tree.Root == nil {
-			// If this is the first element we've come accross, it is
-			// the root of the tree
-			tree.Root = dir
-		}
+		resultingNode = dir
+		nextParent = currentParent
 	}
-	return currentParent, nil
+	if resultingNode != nil && currentParent == nil {
+		// If this node has no parents, it is one of the roots
+		tree.Roots = append(tree.Roots, resultingNode)
+	}
+	return nextParent, nil
 }
 
 // parseName converts an xml.Name to a single string name. For our

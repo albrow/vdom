@@ -8,7 +8,7 @@ import (
 
 // A Tree is an in-memory representation of a DOM tree
 type Tree struct {
-	Root   Node
+	Roots  []Node
 	reader *IndexedByteReader
 	src    []byte
 }
@@ -242,14 +242,16 @@ func (d *Directive) Compare(other *Directive) (bool, string) {
 // children. This is so you can construct a comparable tree inside a literal.
 // (You can't set the parent field inside a literal).
 func (t *Tree) Compare(other *Tree) (bool, string) {
-	if t.Root == nil {
-		if other.Root == nil {
-			return true, ""
-		} else {
-			return false, fmt.Sprintf("t.Root was nil, but other.Root was %v", other.Root)
+	if len(t.Roots) != len(other.Roots) {
+		return false, fmt.Sprintf("t had %d roots but other had %d", len(t.Roots), len(other.Roots))
+	}
+	for i, root := range t.Roots {
+		otherRoot := other.Roots[i]
+		if match, msg := CompareNodes(root, otherRoot); !match {
+			return false, msg
 		}
 	}
-	return CompareNodes(t.Root, other.Root)
+	return true, ""
 }
 
 // CompareNodes recursively compares n to other. It returns false and a detailed
