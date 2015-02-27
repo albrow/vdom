@@ -214,7 +214,7 @@ func TestParse(t *testing.T) {
 	}
 }
 
-// TestParse tests the HTML method for each node in a parsed tree for various different
+// TestHTML tests the HTML method for each node in a parsed tree for various different
 // inputs.
 func TestHTML(t *testing.T) {
 	// We'll use table-driven testing here.
@@ -412,7 +412,7 @@ func expectHTMLEquals(expected []byte, got []byte, description string) error {
 	return nil
 }
 
-// TestParse tests the InnerHTML method for each element in a parsed tree for various different
+// TestInnerHTML tests the InnerHTML method for each element in a parsed tree for various different
 // inputs.
 func TestInnerHTML(t *testing.T) {
 	// We'll use table-driven testing here.
@@ -421,7 +421,7 @@ func TestInnerHTML(t *testing.T) {
 		name string
 		// The src html to be parsed
 		src []byte
-		// A function which should check the results of the HTML method of each
+		// A function which should check the results of the InnerHTML method of each
 		// node in the parsed tree, and return an error if any results are incorrect.
 		testFunc func(*Tree) error
 	}{
@@ -534,4 +534,17 @@ func expectInnerHTMLEquals(expected []byte, got []byte, description string) erro
 		return fmt.Errorf("InnerHTML for %s was not correct.\n\tExpected: %s\n\tBut got:  %s", description, string(expected), string(got))
 	}
 	return nil
+}
+
+func TestSelector(t *testing.T) {
+	// We'll use table-driven testing here.
+	testCases := []struct {
+		// A human-readable name describing this test case
+		name string
+		// The src html to be parsed
+		src []byte
+		// A function which should check the results of the HTML method of each
+		// node in the parsed tree, and return an error if any results are incorrect.
+		testFunc func(*Tree) error
+	}{}
 }
