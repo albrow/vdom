@@ -2,12 +2,24 @@ package vdom
 
 import (
 	"fmt"
+	"html"
 	"reflect"
 )
 
 // A Tree is an in-memory representation of a DOM tree
 type Tree struct {
-	Root Node
+	Root   Node
+	reader *IndexedByteReader
+	src    []byte
+}
+
+// HTML returns the html of this tree and recursively its children
+// as a slice of bytes. The slice is a property of the tree and is
+// not safe to modify it directly. If you need to modify it, copy it
+// first.
+func (t *Tree) HTML() []byte {
+	escaped := string(t.src)
+	return []byte(html.UnescapeString(escaped))
 }
 
 // A Node is an element inside a tree.
@@ -17,6 +29,10 @@ type Node interface {
 	// Children returns a slice of child nodes or nil if there
 	// are none
 	Children() []Node
+	// HTML returns the unescaped html of this node and its
+	// children as a slice of bytes. The return value is suitable
+	// for writing directly to the DOM using the javascript APIs.
+	HTML() []byte
 }
 
 // Attr is an xml/html attribute
@@ -28,10 +44,14 @@ type Attr struct {
 // Element is an xml/html element, e.g., <div></div>. Name does not include the
 // <, >, or / symbols.
 type Element struct {
-	Name     string
-	Attrs    []Attr
-	parent   Node
-	children []Node
+	Name       string
+	Attrs      []Attr
+	parent     Node
+	children   []Node
+	tree       *Tree
+	srcStart   int
+	srcEnd     int
+	autoClosed bool
 }
 
 func (e *Element) Parent() Node {
@@ -42,12 +62,19 @@ func (e *Element) Children() []Node {
 	return e.children
 }
 
-// String satisfies fmt.Stringer
-func (e *Element) String() string {
-	// TODO: improve this by recursively casting children
-	// Currently they just show up as pointer values, which
-	// are not very informative.
-	return fmt.Sprintf("%+v", *e)
+func (e *Element) HTML() []byte {
+	if e.autoClosed {
+		// If the tag was autoclosed, it has no children. Just construct the html manually
+		result := []byte(fmt.Sprintf("<%s", e.Name))
+		for _, attr := range e.Attrs {
+			result = append(result, []byte(fmt.Sprintf(` %s="%s"`, attr.Name, attr.Value))...)
+		}
+		result = append(result, '>')
+		return result
+	} else {
+		escaped := string(e.tree.src[e.srcStart:e.srcEnd])
+		return []byte(html.UnescapeString(escaped))
+	}
 }
 
 // Compare non-recursively compares e to other. It does not check
@@ -88,12 +115,8 @@ func (t *Text) Children() []Node {
 	return nil
 }
 
-// String satisfies fmt.Stringer
-func (t *Text) String() string {
-	// TODO: improve this by recursively casting children
-	// Currently they just show up as pointer values, which
-	// are not very informative.
-	return fmt.Sprintf("%+v", *t)
+func (t *Text) HTML() []byte {
+	return t.Value
 }
 
 // Compare non-recursively compares t to other. It does not check
@@ -122,12 +145,12 @@ func (c *Comment) Children() []Node {
 	return nil
 }
 
-// String satisfies fmt.Stringer
-func (c *Comment) String() string {
-	// TODO: improve this by recursively casting children
-	// Currently they just show up as pointer values, which
-	// are not very informative.
-	return fmt.Sprintf("%+v", *c)
+func (c *Comment) HTML() []byte {
+	// Re-add the open and close for the tag
+	result := []byte("<!--")
+	result = append(result, c.Value...)
+	result = append(result, []byte("-->")...)
+	return result
 }
 
 // Compare non-recursively compares c to other. It does not check
@@ -156,12 +179,14 @@ func (p *ProcInst) Children() []Node {
 	return nil
 }
 
-// String satisfies fmt.Stringer
-func (p *ProcInst) String() string {
-	// TODO: improve this by recursively casting children
-	// Currently they just show up as pointer values, which
-	// are not very informative.
-	return fmt.Sprintf("%+v", *p)
+func (p *ProcInst) HTML() []byte {
+	// Re-add the open and close for the tag
+	result := []byte("<?")
+	result = append(result, []byte(p.Target)...)
+	result = append(result, byte(' '))
+	result = append(result, p.Inst...)
+	result = append(result, []byte("?>")...)
+	return result
 }
 
 // Compare non-recursively compares p to other. It does not check
@@ -193,12 +218,12 @@ func (d *Directive) Children() []Node {
 	return nil
 }
 
-// String satisfies fmt.Stringer
-func (d *Directive) String() string {
-	// TODO: improve this by recursively casting children
-	// Currently they just show up as pointer values, which
-	// are not very informative.
-	return fmt.Sprintf("%+v", *d)
+func (d *Directive) HTML() []byte {
+	// Re-add the open and close for the tag
+	result := []byte("<!")
+	result = append(result, d.Value...)
+	result = append(result, []byte(">")...)
+	return result
 }
 
 // Compare non-recursively compares d to other. It does not check
