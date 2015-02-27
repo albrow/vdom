@@ -30,8 +30,7 @@ type Node interface {
 	// are none
 	Children() []Node
 	// HTML returns the unescaped html of this node and its
-	// children as a slice of bytes. The return value is suitable
-	// for writing directly to the DOM using the javascript APIs.
+	// children as a slice of bytes.
 	HTML() []byte
 }
 
@@ -44,14 +43,16 @@ type Attr struct {
 // Element is an xml/html element, e.g., <div></div>. Name does not include the
 // <, >, or / symbols.
 type Element struct {
-	Name       string
-	Attrs      []Attr
-	parent     Node
-	children   []Node
-	tree       *Tree
-	srcStart   int
-	srcEnd     int
-	autoClosed bool
+	Name          string
+	Attrs         []Attr
+	parent        Node
+	children      []Node
+	tree          *Tree
+	srcStart      int
+	srcEnd        int
+	srcInnerStart int
+	srcInnerEnd   int
+	autoClosed    bool
 }
 
 func (e *Element) Parent() Node {
@@ -73,6 +74,20 @@ func (e *Element) HTML() []byte {
 		return result
 	} else {
 		escaped := string(e.tree.src[e.srcStart:e.srcEnd])
+		return []byte(html.UnescapeString(escaped))
+	}
+}
+
+// InnerHTML returns the unescaped html inside of e. So if e
+// is <ul><li>one</li><li>two</li></ul>, it will return
+// <li>one</li><li>two</li>. Since Element is the only type that
+// can have children, this only makes since for the Element type.
+func (e *Element) InnerHTML() []byte {
+	if e.autoClosed {
+		// If the tag was autoclosed, it has no children, and therefore no inner html.
+		return nil
+	} else {
+		escaped := string(e.tree.src[e.srcInnerStart:e.srcInnerEnd])
 		return []byte(html.UnescapeString(escaped))
 	}
 }
