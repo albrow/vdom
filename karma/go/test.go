@@ -38,15 +38,8 @@ func main() {
 
 		jasmine.It("works with a single root element", func() {
 			// Parse some source html into a tree
-			src := "<div></div>"
-			tree, err := vdom.Parse([]byte(src))
-			jasmine.Expect(err).ToBe(nil)
-
-			// Add html to the actual DOM
-			el := jquery.ParseHTML(src)
-			jq(sandbox).Append(el)
-			js.Global.Call("expect", el).Call("toExist")
-			js.Global.Call("expect", el).Call("toBeInDOM")
+			html := "<div></div>"
+			tree, el := setUpDOM(html, sandbox)
 
 			// Use the selector calculated by the virutal element
 			// to select the corresponding real element in the DOM
@@ -54,22 +47,14 @@ func main() {
 			// Recall that we need to append the partial selector to some
 			// parent selector, in this case the sandbox div.
 			gotEl := jq("#sandbox" + vEl.PartialSelector())
-			js.Global.Call("expect", gotEl).Call("toExist")
-			js.Global.Call("expect", gotEl).Call("toBeInDOM")
+			expectExistsInDom(jq(el))
 			jasmine.Expect(el).ToEqual(gotEl)
 		})
 
 		jasmine.It("works with a ul and nested lis", func() {
 			// Parse some html into a tree
-			src := "<ul><li>one</li><li>two</li><li>three</li></ul>"
-			tree, err := vdom.Parse([]byte(src))
-			jasmine.Expect(err).ToBe(nil)
-
-			// Add html to the actual DOM
-			el := jquery.ParseHTML(src)
-			jq(sandbox).Append(el)
-			js.Global.Call("expect", el).Call("toExist")
-			js.Global.Call("expect", el).Call("toBeInDOM")
+			html := "<ul><li>one</li><li>two</li><li>three</li></ul>"
+			tree, el := setUpDOM(html, sandbox)
 
 			// Use the selector calculated by the virutal element
 			// to select the corresponding real element in the DOM
@@ -77,30 +62,21 @@ func main() {
 			// Recall that we need to append the partial selector to some
 			// parent selector, in this case the sandbox div.
 			gotEl := jq("#sandbox" + vEl.PartialSelector())
-			js.Global.Call("expect", gotEl).Call("toExist")
-			js.Global.Call("expect", gotEl).Call("toBeInDOM")
+			expectExistsInDom(gotEl)
 			jasmine.Expect(el).ToEqual(gotEl)
 
 			// Now do the same thing for each child li element
 			for _, vNode := range vEl.Children() {
 				vLi := vNode.(*vdom.Element)
 				gotLi := jq("#sandbox" + vLi.PartialSelector())
-				js.Global.Call("expect", gotLi).Call("toExist")
-				js.Global.Call("expect", gotLi).Call("toBeInDOM")
+				expectExistsInDom(gotLi)
 			}
 		})
 
 		jasmine.It("works with a form with autoclosed tags", func() {
 			// Parse some html into a tree
-			src := `<form method="post"><input type="text" name="firstName"><input type="text" name="lastName"></form>`
-			tree, err := vdom.Parse([]byte(src))
-			jasmine.Expect(err).ToBe(nil)
-
-			// Add html to the actual DOM
-			el := jquery.ParseHTML(src)
-			jq(sandbox).Append(el)
-			js.Global.Call("expect", el).Call("toExist")
-			js.Global.Call("expect", el).Call("toBeInDOM")
+			html := `<form method="post"><input type="text" name="firstName"><input type="text" name="lastName"></form>`
+			tree, el := setUpDOM(html, sandbox)
 
 			// Use the selector calculated by the virutal element
 			// to select the corresponding real element in the DOM
@@ -108,17 +84,36 @@ func main() {
 			// Recall that we need to append the partial selector to some
 			// parent selector, in this case the sandbox div.
 			gotEl := jq("#sandbox" + vEl.PartialSelector())
-			js.Global.Call("expect", gotEl).Call("toExist")
-			js.Global.Call("expect", gotEl).Call("toBeInDOM")
+			expectExistsInDom(gotEl)
 			jasmine.Expect(el).ToEqual(gotEl)
 
 			// Now do the same thing for each child li element
 			for _, vNode := range vEl.Children() {
 				vInput := vNode.(*vdom.Element)
 				gotInput := jq("#sandbox" + vInput.PartialSelector())
-				js.Global.Call("expect", gotInput).Call("toExist")
-				js.Global.Call("expect", gotInput).Call("toBeInDOM")
+				expectExistsInDom(gotInput)
 			}
 		})
 	})
+}
+
+// setUpDOM parses html into a virtual tree, then adds it to the
+// actual dom by appending to sandbox. It returns both the virtual
+// tree and the root element in the actual DOM.
+func setUpDOM(html string, sandbox *js.Object) (tree *vdom.Tree, root []interface{}) {
+	// Parse the html into a virtual tree
+	tree, err := vdom.Parse([]byte(html))
+	jasmine.Expect(err).ToBe(nil)
+
+	// Add html to the actual DOM
+	el := jquery.ParseHTML(html)
+	jq(sandbox).Append(el)
+	expectExistsInDom(jq(el))
+
+	return tree, el
+}
+
+func expectExistsInDom(el jquery.JQuery) {
+	js.Global.Call("expect", el).Call("toExist")
+	js.Global.Call("expect", el).Call("toBeInDOM")
 }

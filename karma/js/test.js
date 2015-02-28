@@ -20888,22 +20888,21 @@ $packages["github.com/gopherjs/jquery"] = (function() {
 	return $pkg;
 })();
 $packages["main"] = (function() {
-	var $pkg = {}, jasmine, vdom, js, jquery, sliceType, sliceType$1, sliceType$2, sliceType$3, ptrType, sliceType$4, ptrType$1, ptrType$2, sliceType$5, ptrType$3, ptrType$4, jq, main;
+	var $pkg = {}, jasmine, vdom, js, jquery, ptrType, sliceType, ptrType$1, ptrType$2, ptrType$3, ptrType$4, ptrType$5, sliceType$1, sliceType$2, sliceType$3, jq, main, setUpDOM, expectExistsInDom;
 	jasmine = $packages["github.com/albrow/jasmine"];
 	vdom = $packages["github.com/albrow/vdom"];
 	js = $packages["github.com/gopherjs/gopherjs/js"];
 	jquery = $packages["github.com/gopherjs/jquery"];
-	sliceType = $sliceType($Uint8);
-	sliceType$1 = $sliceType($emptyInterface);
-	sliceType$2 = $sliceType($emptyInterface);
-	sliceType$3 = $sliceType($emptyInterface);
 	ptrType = $ptrType(vdom.Element);
-	sliceType$4 = $sliceType($Uint8);
+	sliceType = $sliceType($emptyInterface);
 	ptrType$1 = $ptrType(vdom.Element);
 	ptrType$2 = $ptrType(vdom.Element);
-	sliceType$5 = $sliceType($Uint8);
 	ptrType$3 = $ptrType(vdom.Element);
 	ptrType$4 = $ptrType(vdom.Element);
+	ptrType$5 = $ptrType(vdom.Tree);
+	sliceType$1 = $sliceType($emptyInterface);
+	sliceType$2 = $sliceType($Uint8);
+	sliceType$3 = $sliceType($emptyInterface);
 	main = function() {
 		jasmine.Describe("Tests", (function() {
 			jasmine.It("can be loaded", (function() {
@@ -20925,33 +20924,21 @@ $packages["main"] = (function() {
 				$global.setFixtures(sandbox);
 			}));
 			jasmine.It("works with a single root element", (function() {
-				var _tuple, el, err, gotEl, src, tree, vEl, x;
-				src = "<div></div>";
-				_tuple = vdom.Parse(new sliceType($stringToBytes(src))); tree = _tuple[0]; err = _tuple[1];
-				jasmine.Expect(err).ToBe($ifaceNil);
-				el = jquery.ParseHTML(src);
-				jq(new sliceType$1([new $jsObjectPtr(sandbox)])).Append(new sliceType$2([el]));
-				$global.expect($externalize(el, sliceType$3)).toExist();
-				$global.expect($externalize(el, sliceType$3)).toBeInDOM();
+				var _tuple, el, gotEl, html, tree, vEl, x;
+				html = "<div></div>";
+				_tuple = setUpDOM(html, sandbox); tree = _tuple[0]; el = _tuple[1];
 				vEl = $assertType((x = tree.Roots, (0 >= x.$length ? $throwRuntimeError("index out of range") : x.$array[x.$offset + 0])), ptrType);
-				gotEl = $clone(jq(new sliceType$1([new $String("#sandbox" + vEl.PartialSelector())])), jquery.JQuery);
-				$global.expect($externalize(gotEl, jquery.JQuery)).toExist();
-				$global.expect($externalize(gotEl, jquery.JQuery)).toBeInDOM();
+				gotEl = $clone(jq(new sliceType([new $String("#sandbox" + vEl.PartialSelector())])), jquery.JQuery);
+				expectExistsInDom(jq(new sliceType([el])));
 				jasmine.Expect(el).ToEqual(new gotEl.constructor.elem(gotEl));
 			}));
 			jasmine.It("works with a ul and nested lis", (function() {
-				var _i, _ref, _tuple, el, err, gotEl, gotLi, src, tree, vEl, vLi, vNode, x;
-				src = "<ul><li>one</li><li>two</li><li>three</li></ul>";
-				_tuple = vdom.Parse(new sliceType$4($stringToBytes(src))); tree = _tuple[0]; err = _tuple[1];
-				jasmine.Expect(err).ToBe($ifaceNil);
-				el = jquery.ParseHTML(src);
-				jq(new sliceType$1([new $jsObjectPtr(sandbox)])).Append(new sliceType$2([el]));
-				$global.expect($externalize(el, sliceType$3)).toExist();
-				$global.expect($externalize(el, sliceType$3)).toBeInDOM();
+				var _i, _ref, _tuple, el, gotEl, gotLi, html, tree, vEl, vLi, vNode, x;
+				html = "<ul><li>one</li><li>two</li><li>three</li></ul>";
+				_tuple = setUpDOM(html, sandbox); tree = _tuple[0]; el = _tuple[1];
 				vEl = $assertType((x = tree.Roots, (0 >= x.$length ? $throwRuntimeError("index out of range") : x.$array[x.$offset + 0])), ptrType$1);
-				gotEl = $clone(jq(new sliceType$1([new $String("#sandbox" + vEl.PartialSelector())])), jquery.JQuery);
-				$global.expect($externalize(gotEl, jquery.JQuery)).toExist();
-				$global.expect($externalize(gotEl, jquery.JQuery)).toBeInDOM();
+				gotEl = $clone(jq(new sliceType([new $String("#sandbox" + vEl.PartialSelector())])), jquery.JQuery);
+				expectExistsInDom(gotEl);
 				jasmine.Expect(el).ToEqual(new gotEl.constructor.elem(gotEl));
 				_ref = vEl.Children();
 				_i = 0;
@@ -20959,25 +20946,18 @@ $packages["main"] = (function() {
 					if (!(_i < _ref.$length)) { break; }
 					vNode = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
 					vLi = $assertType(vNode, ptrType$2);
-					gotLi = $clone(jq(new sliceType$1([new $String("#sandbox" + vLi.PartialSelector())])), jquery.JQuery);
-					$global.expect($externalize(gotLi, jquery.JQuery)).toExist();
-					$global.expect($externalize(gotLi, jquery.JQuery)).toBeInDOM();
+					gotLi = $clone(jq(new sliceType([new $String("#sandbox" + vLi.PartialSelector())])), jquery.JQuery);
+					expectExistsInDom(gotLi);
 					_i++;
 				}
 			}));
 			jasmine.It("works with a form with autoclosed tags", (function() {
-				var _i, _ref, _tuple, el, err, gotEl, gotInput, src, tree, vEl, vInput, vNode, x;
-				src = "<form method=\"post\"><input type=\"text\" name=\"firstName\"><input type=\"text\" name=\"lastName\"></form>";
-				_tuple = vdom.Parse(new sliceType$5($stringToBytes(src))); tree = _tuple[0]; err = _tuple[1];
-				jasmine.Expect(err).ToBe($ifaceNil);
-				el = jquery.ParseHTML(src);
-				jq(new sliceType$1([new $jsObjectPtr(sandbox)])).Append(new sliceType$2([el]));
-				$global.expect($externalize(el, sliceType$3)).toExist();
-				$global.expect($externalize(el, sliceType$3)).toBeInDOM();
+				var _i, _ref, _tuple, el, gotEl, gotInput, html, tree, vEl, vInput, vNode, x;
+				html = "<form method=\"post\"><input type=\"text\" name=\"firstName\"><input type=\"text\" name=\"lastName\"></form>";
+				_tuple = setUpDOM(html, sandbox); tree = _tuple[0]; el = _tuple[1];
 				vEl = $assertType((x = tree.Roots, (0 >= x.$length ? $throwRuntimeError("index out of range") : x.$array[x.$offset + 0])), ptrType$3);
-				gotEl = $clone(jq(new sliceType$1([new $String("#sandbox" + vEl.PartialSelector())])), jquery.JQuery);
-				$global.expect($externalize(gotEl, jquery.JQuery)).toExist();
-				$global.expect($externalize(gotEl, jquery.JQuery)).toBeInDOM();
+				gotEl = $clone(jq(new sliceType([new $String("#sandbox" + vEl.PartialSelector())])), jquery.JQuery);
+				expectExistsInDom(gotEl);
 				jasmine.Expect(el).ToEqual(new gotEl.constructor.elem(gotEl));
 				_ref = vEl.Children();
 				_i = 0;
@@ -20985,13 +20965,28 @@ $packages["main"] = (function() {
 					if (!(_i < _ref.$length)) { break; }
 					vNode = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
 					vInput = $assertType(vNode, ptrType$4);
-					gotInput = $clone(jq(new sliceType$1([new $String("#sandbox" + vInput.PartialSelector())])), jquery.JQuery);
-					$global.expect($externalize(gotInput, jquery.JQuery)).toExist();
-					$global.expect($externalize(gotInput, jquery.JQuery)).toBeInDOM();
+					gotInput = $clone(jq(new sliceType([new $String("#sandbox" + vInput.PartialSelector())])), jquery.JQuery);
+					expectExistsInDom(gotInput);
 					_i++;
 				}
 			}));
 		}));
+	};
+	setUpDOM = function(html, sandbox) {
+		var _tmp, _tmp$1, _tuple, el, err, html, root = sliceType$1.nil, sandbox, tree = ptrType$5.nil;
+		_tuple = vdom.Parse(new sliceType$2($stringToBytes(html))); tree = _tuple[0]; err = _tuple[1];
+		jasmine.Expect(err).ToBe($ifaceNil);
+		el = jquery.ParseHTML(html);
+		jq(new sliceType([new $jsObjectPtr(sandbox)])).Append(new sliceType$3([el]));
+		expectExistsInDom(jq(new sliceType([el])));
+		_tmp = tree; _tmp$1 = el; tree = _tmp; root = _tmp$1;
+		return [tree, root];
+	};
+	expectExistsInDom = function(el) {
+		var el;
+		el = $clone(el, jquery.JQuery);
+		$global.expect($externalize(el, jquery.JQuery)).toExist();
+		$global.expect($externalize(el, jquery.JQuery)).toBeInDOM();
 	};
 	$pkg.$init = function() {
 		$pkg.$init = function() {};
