@@ -64,13 +64,29 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			currentParent.children = append(currentParent.children, el)
 		}
 		// Set the srcStart to indicate where in tree.src the html for this element
-		// starts. To do this, start from the current offset and find the first preceding
-		// tag open (the '<' character)
+		// starts. Since we don't know the exact length of the starting tag (might be extra whitespace
+		// in between attributes), we can't just do arithmetic here. Instead, start from the current
+		// offset and find the first preceding tag open (the '<' character)
 		start, err := tree.reader.BackwardsSearch(0, tree.reader.Offset()-1, '<')
 		if err != nil {
 			return nil, err
 		}
 		el.srcStart = start
+		// The innerHTML start is just the current offset
+		el.srcInnerStart = tree.reader.Offset()
+		// Calculate a selector for this element.
+		if currentParent == nil {
+			// There is no current parent. Count the number of other roots in
+			// the tree to determine the nth-child index for this element
+			el.selector = fmt.Sprintf(" > *:nth-child(%d)", len(tree.Roots)+1)
+		} else {
+			// Count the number of children in the current parent to determine
+			// the nth-child index for this element.
+			subSelector := fmt.Sprintf(" > *:nth-child(%d)", len(currentParent.children))
+			// Then append this to the parent's selector so we can get all the
+			// way from the root to this element.
+			el.selector = currentParent.selector + subSelector
+		}
 		// Set this element to the nextParent. The next node(s) we find
 		// are children of this element until we reach xml.EndElement
 		nextParent = el
@@ -100,6 +116,11 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			// the bytes for the html of the currentParent and its children. The ending
 			// index is the current offset.
 			currentParent.srcEnd = tree.reader.Offset()
+			// The innerHTML ends at the start of the closing tag
+			// The closing tag has length of len(currentParent.Name) + 3
+			// for the <, /, and > characters.
+			closingTagLength := len(currentParent.Name) + 3
+			currentParent.srcInnerEnd = tree.reader.Offset() - closingTagLength
 		}
 		// The currentParent has no more children.
 		// The next node(s) we find must be children of currentParent.parent.
