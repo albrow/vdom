@@ -1,25 +1,9 @@
-// +build js
-
 package vdom
 
 import (
 	"fmt"
-	"github.com/gopherjs/gopherjs/js"
 	"honnef.co/go/js/dom"
 )
-
-var (
-	document dom.Document
-)
-
-func init() {
-	// Initialize document iff we are running
-	// inside some environment that has a window, which
-	// means it probably has a DOM.
-	if js.Global.Get("window") != js.Undefined {
-		document = dom.GetWindow().Document()
-	}
-}
 
 type Patcher interface {
 	Patch(root dom.Element)
