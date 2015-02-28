@@ -552,7 +552,7 @@ func TestSelector(t *testing.T) {
 			src:  []byte("<div></div>"),
 			testFunc: func(tree *Tree) error {
 				el := tree.Roots[0].(*Element)
-				return expectSelectorEquals(el, " > *:nth-child(1)", "root element")
+				return expectSelectorEquals(el, "*:nth-child(1)", "root element")
 			},
 		},
 		{
@@ -562,7 +562,7 @@ func TestSelector(t *testing.T) {
 				{
 					// Test the root of the tree, the ul element
 					el := tree.Roots[0].(*Element)
-					if err := expectSelectorEquals(el, " > *:nth-child(1)", "the root ul element"); err != nil {
+					if err := expectSelectorEquals(el, "*:nth-child(1)", "the root ul element"); err != nil {
 						return err
 					}
 				}
@@ -571,7 +571,7 @@ func TestSelector(t *testing.T) {
 					// Test each child li element
 					for i, li := range lis {
 						el := li.(*Element)
-						expected := fmt.Sprintf(" > *:nth-child(1) > *:nth-child(%d)", i+1)
+						expected := fmt.Sprintf("*:nth-child(1) > *:nth-child(%d)", i+1)
 						desc := fmt.Sprintf("li element %d", i)
 						if err := expectSelectorEquals(el, expected, desc); err != nil {
 							return err
@@ -588,7 +588,7 @@ func TestSelector(t *testing.T) {
 				{
 					// Test the root element
 					el := tree.Roots[0].(*Element)
-					if err := expectSelectorEquals(el, " > *:nth-child(1)", "the root ul element"); err != nil {
+					if err := expectSelectorEquals(el, "*:nth-child(1)", "the root ul element"); err != nil {
 						return err
 					}
 				}
@@ -597,7 +597,7 @@ func TestSelector(t *testing.T) {
 					// Test each child input element
 					for i, input := range inputs {
 						el := input.(*Element)
-						expected := fmt.Sprintf(" > *:nth-child(1) > *:nth-child(%d)", i+1)
+						expected := fmt.Sprintf("*:nth-child(1) > *:nth-child(%d)", i+1)
 						desc := fmt.Sprintf("input element %d", i)
 						if err := expectSelectorEquals(el, expected, desc); err != nil {
 							return err
@@ -622,12 +622,12 @@ func TestSelector(t *testing.T) {
 	}
 }
 
-// expectSelectorEquals returns an error if el.PartialSelector() does not equal expected. description
+// expectSelectorEquals returns an error if el.Selector() does not equal expected. description
 // should be a human-readable description of the element that was tested, e.g. "the root ul element"
 func expectSelectorEquals(el *Element, expected, description string) error {
-	got := el.PartialSelector()
+	got := el.Selector()
 	if expected != got {
-		return fmt.Errorf("PartialSelector for %s was not correct. Expected `%s` but got `%s`", description, expected, got)
+		return fmt.Errorf("Selector for %s was not correct. Expected `%s` but got `%s`", description, expected, got)
 	}
 	return nil
 }
