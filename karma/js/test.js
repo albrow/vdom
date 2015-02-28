@@ -23487,7 +23487,7 @@ $packages["github.com/albrow/vdom"] = (function() {
 			el.srcStart = start;
 			el.srcInnerStart = tree.reader.Offset();
 			if (currentParent === ptrType$5.nil) {
-				el.selector = fmt.Sprintf(" > *:nth-child(%d)", new sliceType$6([new $Int((tree.Roots.$length + 1 >> 0))]));
+				el.selector = fmt.Sprintf("*:nth-child(%d)", new sliceType$6([new $Int((tree.Roots.$length + 1 >> 0))]));
 			} else {
 				subSelector = fmt.Sprintf(" > *:nth-child(%d)", new sliceType$6([new $Int(currentParent.children.$length)]));
 				el.selector = currentParent.selector + subSelector;
@@ -23637,12 +23637,12 @@ $packages["github.com/albrow/vdom"] = (function() {
 		}
 	};
 	Element.prototype.InnerHTML = function() { return this.$val.InnerHTML(); };
-	Element.ptr.prototype.PartialSelector = function() {
+	Element.ptr.prototype.Selector = function() {
 		var e;
 		e = this;
 		return e.selector;
 	};
-	Element.prototype.PartialSelector = function() { return this.$val.PartialSelector(); };
+	Element.prototype.Selector = function() { return this.$val.Selector(); };
 	Element.ptr.prototype.Compare = function(other) {
 		var _i, _ref, attr, attrs, e, i, other, otherAttr, otherAttrs;
 		e = this;
@@ -23879,7 +23879,7 @@ $packages["github.com/albrow/vdom"] = (function() {
 	};
 	ptrType$25.methods = [{prop: "Read", name: "Read", pkg: "", typ: $funcType([sliceType$31], [$Int, $error], false)}, {prop: "ReadByte", name: "ReadByte", pkg: "", typ: $funcType([], [$Uint8, $error], false)}, {prop: "Offset", name: "Offset", pkg: "", typ: $funcType([], [$Int], false)}, {prop: "BackwardsSearch", name: "BackwardsSearch", pkg: "", typ: $funcType([$Int, $Int, $Uint8], [$Int, $error], false)}];
 	ptrType$28.methods = [{prop: "HTML", name: "HTML", pkg: "", typ: $funcType([], [sliceType$33], false)}, {prop: "Compare", name: "Compare", pkg: "", typ: $funcType([ptrType$27], [$Bool, $String], false)}];
-	ptrType$30.methods = [{prop: "Parent", name: "Parent", pkg: "", typ: $funcType([], [Node], false)}, {prop: "Children", name: "Children", pkg: "", typ: $funcType([], [sliceType$36], false)}, {prop: "HTML", name: "HTML", pkg: "", typ: $funcType([], [sliceType$37], false)}, {prop: "InnerHTML", name: "InnerHTML", pkg: "", typ: $funcType([], [sliceType$18], false)}, {prop: "PartialSelector", name: "PartialSelector", pkg: "", typ: $funcType([], [$String], false)}, {prop: "Compare", name: "Compare", pkg: "", typ: $funcType([ptrType$29], [$Bool, $String], false)}];
+	ptrType$30.methods = [{prop: "Parent", name: "Parent", pkg: "", typ: $funcType([], [Node], false)}, {prop: "Children", name: "Children", pkg: "", typ: $funcType([], [sliceType$36], false)}, {prop: "HTML", name: "HTML", pkg: "", typ: $funcType([], [sliceType$37], false)}, {prop: "InnerHTML", name: "InnerHTML", pkg: "", typ: $funcType([], [sliceType$18], false)}, {prop: "Selector", name: "Selector", pkg: "", typ: $funcType([], [$String], false)}, {prop: "Compare", name: "Compare", pkg: "", typ: $funcType([ptrType$29], [$Bool, $String], false)}];
 	ptrType$32.methods = [{prop: "Parent", name: "Parent", pkg: "", typ: $funcType([], [Node], false)}, {prop: "Children", name: "Children", pkg: "", typ: $funcType([], [sliceType$20], false)}, {prop: "HTML", name: "HTML", pkg: "", typ: $funcType([], [sliceType$38], false)}, {prop: "Compare", name: "Compare", pkg: "", typ: $funcType([ptrType$31], [$Bool, $String], false)}];
 	ptrType$34.methods = [{prop: "Parent", name: "Parent", pkg: "", typ: $funcType([], [Node], false)}, {prop: "Children", name: "Children", pkg: "", typ: $funcType([], [sliceType$21], false)}, {prop: "HTML", name: "HTML", pkg: "", typ: $funcType([], [sliceType$39], false)}, {prop: "Compare", name: "Compare", pkg: "", typ: $funcType([ptrType$33], [$Bool, $String], false)}];
 	ptrType$36.methods = [{prop: "Parent", name: "Parent", pkg: "", typ: $funcType([], [Node], false)}, {prop: "Children", name: "Children", pkg: "", typ: $funcType([], [sliceType$24], false)}, {prop: "HTML", name: "HTML", pkg: "", typ: $funcType([], [sliceType$40], false)}, {prop: "Compare", name: "Compare", pkg: "", typ: $funcType([ptrType$35], [$Bool, $String], false)}];
@@ -24775,21 +24775,22 @@ $packages["github.com/gopherjs/jquery"] = (function() {
 	return $pkg;
 })();
 $packages["main"] = (function() {
-	var $pkg = {}, jasmine, vdom, js, jquery, ptrType, sliceType, ptrType$1, ptrType$2, ptrType$3, ptrType$4, ptrType$5, sliceType$1, sliceType$2, sliceType$3, jq, main, setUpDOM, expectExistsInDom;
+	var $pkg = {}, jasmine, vdom, js, jquery, ptrType, sliceType, sliceType$1, ptrType$1, ptrType$2, ptrType$3, ptrType$4, ptrType$5, sliceType$2, sliceType$3, sliceType$4, jq, main, setUpDOM, expectExistsInDom;
 	jasmine = $packages["github.com/albrow/jasmine"];
 	vdom = $packages["github.com/albrow/vdom"];
 	js = $packages["github.com/gopherjs/gopherjs/js"];
 	jquery = $packages["github.com/gopherjs/jquery"];
 	ptrType = $ptrType(vdom.Element);
 	sliceType = $sliceType($emptyInterface);
+	sliceType$1 = $sliceType($emptyInterface);
 	ptrType$1 = $ptrType(vdom.Element);
 	ptrType$2 = $ptrType(vdom.Element);
 	ptrType$3 = $ptrType(vdom.Element);
 	ptrType$4 = $ptrType(vdom.Element);
 	ptrType$5 = $ptrType(vdom.Tree);
-	sliceType$1 = $sliceType($emptyInterface);
-	sliceType$2 = $sliceType($Uint8);
-	sliceType$3 = $sliceType($emptyInterface);
+	sliceType$2 = $sliceType($emptyInterface);
+	sliceType$3 = $sliceType($Uint8);
+	sliceType$4 = $sliceType($emptyInterface);
 	main = function() {
 		jasmine.Describe("Tests", (function() {
 			jasmine.It("can be loaded", (function() {
@@ -24803,7 +24804,7 @@ $packages["main"] = (function() {
 				$global.expect(sandbox).toBeInDOM();
 			}));
 		}));
-		jasmine.Describe("PartialSelector", (function() {
+		jasmine.Describe("Selector", (function() {
 			var sandbox;
 			sandbox = null;
 			jasmine.BeforeEach((function() {
@@ -24815,7 +24816,7 @@ $packages["main"] = (function() {
 				html = "<div></div>";
 				_tuple = setUpDOM(html, sandbox); tree = _tuple[0]; el = _tuple[1];
 				vEl = $assertType((x = tree.Roots, (0 >= x.$length ? $throwRuntimeError("index out of range") : x.$array[x.$offset + 0])), ptrType);
-				gotEl = $clone(jq(new sliceType([new $String("#sandbox" + vEl.PartialSelector())])), jquery.JQuery);
+				gotEl = $clone(jq(new sliceType([new $jsObjectPtr(sandbox)])).Find(new sliceType$1([new $String(vEl.Selector())])), jquery.JQuery);
 				expectExistsInDom(jq(new sliceType([el])));
 				jasmine.Expect(el).ToEqual(new gotEl.constructor.elem(gotEl));
 			}));
@@ -24824,7 +24825,7 @@ $packages["main"] = (function() {
 				html = "<ul><li>one</li><li>two</li><li>three</li></ul>";
 				_tuple = setUpDOM(html, sandbox); tree = _tuple[0]; el = _tuple[1];
 				vEl = $assertType((x = tree.Roots, (0 >= x.$length ? $throwRuntimeError("index out of range") : x.$array[x.$offset + 0])), ptrType$1);
-				gotEl = $clone(jq(new sliceType([new $String("#sandbox" + vEl.PartialSelector())])), jquery.JQuery);
+				gotEl = $clone(jq(new sliceType([new $jsObjectPtr(sandbox)])).Find(new sliceType$1([new $String(vEl.Selector())])), jquery.JQuery);
 				expectExistsInDom(gotEl);
 				jasmine.Expect(el).ToEqual(new gotEl.constructor.elem(gotEl));
 				_ref = vEl.Children();
@@ -24833,7 +24834,7 @@ $packages["main"] = (function() {
 					if (!(_i < _ref.$length)) { break; }
 					vNode = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
 					vLi = $assertType(vNode, ptrType$2);
-					gotLi = $clone(jq(new sliceType([new $String("#sandbox" + vLi.PartialSelector())])), jquery.JQuery);
+					gotLi = $clone(jq(new sliceType([new $jsObjectPtr(sandbox)])).Find(new sliceType$1([new $String(vLi.Selector())])), jquery.JQuery);
 					expectExistsInDom(gotLi);
 					_i++;
 				}
@@ -24843,7 +24844,7 @@ $packages["main"] = (function() {
 				html = "<form method=\"post\"><input type=\"text\" name=\"firstName\"><input type=\"text\" name=\"lastName\"></form>";
 				_tuple = setUpDOM(html, sandbox); tree = _tuple[0]; el = _tuple[1];
 				vEl = $assertType((x = tree.Roots, (0 >= x.$length ? $throwRuntimeError("index out of range") : x.$array[x.$offset + 0])), ptrType$3);
-				gotEl = $clone(jq(new sliceType([new $String("#sandbox" + vEl.PartialSelector())])), jquery.JQuery);
+				gotEl = $clone(jq(new sliceType([new $jsObjectPtr(sandbox)])).Find(new sliceType$1([new $String(vEl.Selector())])), jquery.JQuery);
 				expectExistsInDom(gotEl);
 				jasmine.Expect(el).ToEqual(new gotEl.constructor.elem(gotEl));
 				_ref = vEl.Children();
@@ -24852,7 +24853,7 @@ $packages["main"] = (function() {
 					if (!(_i < _ref.$length)) { break; }
 					vNode = ((_i < 0 || _i >= _ref.$length) ? $throwRuntimeError("index out of range") : _ref.$array[_ref.$offset + _i]);
 					vInput = $assertType(vNode, ptrType$4);
-					gotInput = $clone(jq(new sliceType([new $String("#sandbox" + vInput.PartialSelector())])), jquery.JQuery);
+					gotInput = $clone(jq(new sliceType([new $jsObjectPtr(sandbox)])).Find(new sliceType$1([new $String(vInput.Selector())])), jquery.JQuery);
 					expectExistsInDom(gotInput);
 					_i++;
 				}
@@ -24860,11 +24861,11 @@ $packages["main"] = (function() {
 		}));
 	};
 	setUpDOM = function(html, sandbox) {
-		var _tmp, _tmp$1, _tuple, el, err, html, root = sliceType$1.nil, sandbox, tree = ptrType$5.nil;
-		_tuple = vdom.Parse(new sliceType$2($stringToBytes(html))); tree = _tuple[0]; err = _tuple[1];
+		var _tmp, _tmp$1, _tuple, el, err, html, root = sliceType$2.nil, sandbox, tree = ptrType$5.nil;
+		_tuple = vdom.Parse(new sliceType$3($stringToBytes(html))); tree = _tuple[0]; err = _tuple[1];
 		jasmine.Expect(err).ToBe($ifaceNil);
 		el = jquery.ParseHTML(html);
-		jq(new sliceType([new $jsObjectPtr(sandbox)])).Append(new sliceType$3([el]));
+		jq(new sliceType([new $jsObjectPtr(sandbox)])).Append(new sliceType$4([el]));
 		expectExistsInDom(jq(new sliceType([el])));
 		_tmp = tree; _tmp$1 = el; tree = _tmp; root = _tmp$1;
 		return [tree, root];

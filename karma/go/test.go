@@ -25,7 +25,7 @@ func main() {
 		})
 	})
 
-	jasmine.Describe("PartialSelector", func() {
+	jasmine.Describe("Selector", func() {
 
 		// sandbox is a div with id = sandbox. It will be
 		// automatically created and cleaned up for each test.
@@ -46,7 +46,7 @@ func main() {
 			vEl := tree.Roots[0].(*vdom.Element)
 			// Recall that we need to append the partial selector to some
 			// parent selector, in this case the sandbox div.
-			gotEl := jq("#sandbox" + vEl.PartialSelector())
+			gotEl := jq(sandbox).Find(vEl.Selector())
 			expectExistsInDom(jq(el))
 			jasmine.Expect(el).ToEqual(gotEl)
 		})
@@ -61,14 +61,14 @@ func main() {
 			vEl := tree.Roots[0].(*vdom.Element)
 			// Recall that we need to append the partial selector to some
 			// parent selector, in this case the sandbox div.
-			gotEl := jq("#sandbox" + vEl.PartialSelector())
+			gotEl := jq(sandbox).Find(vEl.Selector())
 			expectExistsInDom(gotEl)
 			jasmine.Expect(el).ToEqual(gotEl)
 
 			// Now do the same thing for each child li element
 			for _, vNode := range vEl.Children() {
 				vLi := vNode.(*vdom.Element)
-				gotLi := jq("#sandbox" + vLi.PartialSelector())
+				gotLi := jq(sandbox).Find(vLi.Selector())
 				expectExistsInDom(gotLi)
 			}
 		})
@@ -83,14 +83,14 @@ func main() {
 			vEl := tree.Roots[0].(*vdom.Element)
 			// Recall that we need to append the partial selector to some
 			// parent selector, in this case the sandbox div.
-			gotEl := jq("#sandbox" + vEl.PartialSelector())
+			gotEl := jq(sandbox).Find(vEl.Selector())
 			expectExistsInDom(gotEl)
 			jasmine.Expect(el).ToEqual(gotEl)
 
 			// Now do the same thing for each child li element
 			for _, vNode := range vEl.Children() {
 				vInput := vNode.(*vdom.Element)
-				gotInput := jq("#sandbox" + vInput.PartialSelector())
+				gotInput := jq(sandbox).Find(vInput.Selector())
 				expectExistsInDom(gotInput)
 			}
 		})

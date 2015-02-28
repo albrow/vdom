@@ -42,7 +42,7 @@ func (p *SetInnerHTML) Patch(root dom.Element) error {
 	switch p.vnode.(type) {
 	case (*Element):
 		vEl := p.vnode.(*Element)
-		el := root.QuerySelector(vEl.PartialSelector())
+		el := root.QuerySelector(vEl.Selector())
 		el.SetInnerHTML(string(p.inner))
 	default:
 		return fmt.Errorf("Don't know how to apply SetInnerHTML patch with vnode of type %T", p.vnode)

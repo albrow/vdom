@@ -93,19 +93,14 @@ func (e *Element) InnerHTML() []byte {
 	}
 }
 
-// PartialSelector returns a partial css selector which can be used to find
-// the corresponding element in the actual DOM. Because virtual
-// Tree has no knowledge of where it is in relation to the actual DOM,
-// the returned selector must be appended to some parent selector which
-// represents the parent element in the actual DOM where we want the
-// virtual Tree to exist. For example, PartialSelector might return " > *:nth-child(1)",
-// which by itself is not a valid selector. If we want to place the virtual
-// Tree directly into the body, the full, valid selector would be
-// "body > *:nth-child(1)". Similarly if we wanted the virtual Tree to
-// be the child of #some-div, the full, valid selector would be
-// "#some-div > *:nth-child(1)". This way you can place the elements from
-// the virtual Tree in any location in the actual DOM.
-func (e *Element) PartialSelector() string {
+// Selector returns a css selector which can be used to find
+// the corresponding element in the actual DOM. The selector is
+// relative to the parent of the tree. So if the virtual tree should
+// have a parent div in the actual DOM, you could find the
+// actual element corresponding to the virtual element e via
+// parentDiv.QuerySelector(e.Selector), or with the jquery bindings,
+// jquery.NewJQuery(parentDiv).Find(e.Selector).
+func (e *Element) Selector() string {
 	return e.selector
 }
 
