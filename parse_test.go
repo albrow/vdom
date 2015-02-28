@@ -543,8 +543,91 @@ func TestSelector(t *testing.T) {
 		name string
 		// The src html to be parsed
 		src []byte
-		// A function which should check the results of the HTML method of each
-		// node in the parsed tree, and return an error if any results are incorrect.
+		// A function which should check the results of the Selector method of each
+		// element in the parsed tree, and return an error if any results are incorrect.
 		testFunc func(*Tree) error
-	}{}
+	}{
+		{
+			name: "Element root",
+			src:  []byte("<div></div>"),
+			testFunc: func(tree *Tree) error {
+				el := tree.Roots[0].(*Element)
+				return expectSelectorEquals(el, "*:nth-child(1)", "root element")
+			},
+		},
+		{
+			name: "ul with nested li's",
+			src:  []byte("<ul><li>one</li><li>two</li><li>three</li></ul>"),
+			testFunc: func(tree *Tree) error {
+				{
+					// Test the root of the tree, the ul element
+					el := tree.Roots[0].(*Element)
+					if err := expectSelectorEquals(el, "*:nth-child(1)", "the root ul element"); err != nil {
+						return err
+					}
+				}
+				lis := tree.Roots[0].Children()
+				{
+					// Test each child li element
+					for i, li := range lis {
+						el := li.(*Element)
+						expected := fmt.Sprintf("*:nth-child(1) > *:nth-child(%d)", i+1)
+						desc := fmt.Sprintf("li element %d", i)
+						if err := expectSelectorEquals(el, expected, desc); err != nil {
+							return err
+						}
+					}
+				}
+				return nil
+			},
+		},
+		{
+			name: "Form with autoclosed tags",
+			src:  []byte(`<form method="post"><input type="text" name="firstName"><input type="text" name="lastName"></form>`),
+			testFunc: func(tree *Tree) error {
+				{
+					// Test the root element
+					el := tree.Roots[0].(*Element)
+					if err := expectSelectorEquals(el, "*:nth-child(1)", "the root ul element"); err != nil {
+						return err
+					}
+				}
+				{
+					inputs := tree.Roots[0].Children()
+					// Test each child input element
+					for i, input := range inputs {
+						el := input.(*Element)
+						expected := fmt.Sprintf("*:nth-child(1) > *:nth-child(%d)", i+1)
+						desc := fmt.Sprintf("input element %d", i)
+						if err := expectSelectorEquals(el, expected, desc); err != nil {
+							return err
+						}
+					}
+				}
+				return nil
+			},
+		},
+	}
+	// Iterate through each test case
+	for i, tc := range testCases {
+		// Parse the input from tc.src
+		gotTree, err := Parse(tc.src)
+		if err != nil {
+			t.Errorf("Unexpected error in Parse: %s", err.Error())
+		}
+		// Use the testFunc to test for certain conditions
+		if err := tc.testFunc(gotTree); err != nil {
+			t.Errorf("Error in test case %d (%s):\n%s", i, tc.name, err.Error())
+		}
+	}
+}
+
+// expectSelectorEquals returns an error if el.Selector() does not equal expected. description
+// should be a human-readable description of the element that was tested, e.g. "the root ul element"
+func expectSelectorEquals(el *Element, expected, description string) error {
+	got := el.Selector()
+	if expected != got {
+		return fmt.Errorf("Selector for %s was not correct. Expected `%s` but got `%s`", description, expected, got)
+	}
+	return nil
 }

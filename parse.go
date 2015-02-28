@@ -74,6 +74,19 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		el.srcStart = start
 		// The innerHTML start is just the current offset
 		el.srcInnerStart = tree.reader.Offset()
+		// Calculate a selector for this element.
+		if currentParent == nil {
+			// There is no current parent. Count the number of other roots in
+			// the tree to determine the nth-child index for this element
+			el.selector = fmt.Sprintf("*:nth-child(%d)", len(tree.Roots)+1)
+		} else {
+			// Count the number of children in the current parent to determine
+			// the nth-child index for this element.
+			subSelector := fmt.Sprintf(" > *:nth-child(%d)", len(currentParent.children))
+			// Then append this to the parent's selector so we can get all the
+			// way from the root to this element.
+			el.selector = currentParent.selector + subSelector
+		}
 		// Set this element to the nextParent. The next node(s) we find
 		// are children of this element until we reach xml.EndElement
 		nextParent = el

@@ -53,6 +53,7 @@ type Element struct {
 	srcInnerStart int
 	srcInnerEnd   int
 	autoClosed    bool
+	selector      string
 }
 
 func (e *Element) Parent() Node {
@@ -90,6 +91,22 @@ func (e *Element) InnerHTML() []byte {
 		escaped := string(e.tree.src[e.srcInnerStart:e.srcInnerEnd])
 		return []byte(html.UnescapeString(escaped))
 	}
+}
+
+// Selector returns a css selector which can be used to find
+// the actual element in the DOM. Because virtual Tree has no
+// knowledge of where it is in relation to the actual DOM, the
+// returned must be appended to some parent selector which represents
+// the parent element in the actual DOM where we want the virtual
+// Tree to exist. For example, Selector might return :nth-child(0), which
+// by itself is not a valid selector. If we want to place the virtual
+// Tree directly into the body, the full, valid selector would be
+// body:nth-child(0). Similarly if we wanted the virtual Tree to
+// be the child of #some-div, the full, valid selector would be
+// #some-div:nth-child(0). This way you can place the elements in
+// the virtual tree wherever you want.
+func (e *Element) Selector() string {
+	return e.selector
 }
 
 // Compare non-recursively compares e to other. It does not check
