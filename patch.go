@@ -3,6 +3,7 @@
 package vdom
 
 import (
+	"fmt"
 	"github.com/gopherjs/gopherjs/js"
 	"honnef.co/go/js/dom"
 )
@@ -20,36 +21,31 @@ func init() {
 	}
 }
 
-type Patch interface {
-	Apply(parentSelector string)
+type Patcher interface {
+	Patch(root dom.Element)
 }
 
-type PatchSet []Patch
+type PatchSet []Patcher
 
-func (ps PatchSet) Apply(parentSelector string) {
+func (ps PatchSet) Patch(root dom.Element) {
 	for _, patch := range ps {
-		patch.Apply(parentSelector)
+		patch.Patch(root)
 	}
 }
 
-type AppendChild struct {
-	parent dom.Node
-	child  dom.Node
+type SetInnerHTML struct {
+	vnode Node
+	inner []byte
 }
 
-func (ac *AppendChild) Apply() {
-	ac.parent.AppendChild(ac.child)
-}
-
-func NewAppendChildPatch(child Node) *AppendChild {
-	// var domChild dom.Node
-	// switch child.(type) {
-	// case *Element:
-	// 	el := child.(*Element)
-	// 	domEl := document.CreateElement(el.Name)
-	// 	for _, attr := range el.Attrs {
-	// 		domEl.SetAttribute(attr.Name, attr.Value)
-	// 	}
-	// }
-	return &AppendChild{}
+func (p *SetInnerHTML) Patch(root dom.Element) error {
+	switch p.vnode.(type) {
+	case (*Element):
+		vEl := p.vnode.(*Element)
+		el := root.QuerySelector(vEl.PartialSelector())
+		el.SetInnerHTML(string(p.inner))
+	default:
+		return fmt.Errorf("Don't know how to apply SetInnerHTML patch with vnode of type %T", p.vnode)
+	}
+	return nil
 }
