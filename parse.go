@@ -78,7 +78,7 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		if currentParent == nil {
 			// There is no current parent. Count the number of other roots in
 			// the tree to determine the nth-child index for this element
-			el.selector = fmt.Sprintf("*:nth-child(%d)", len(tree.Roots)+1)
+			el.selector = fmt.Sprintf(" > *:nth-child(%d)", len(tree.Roots)+1)
 		} else {
 			// Count the number of children in the current parent to determine
 			// the nth-child index for this element.
