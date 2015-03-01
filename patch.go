@@ -18,18 +18,19 @@ func (ps PatchSet) Patch(root dom.Element) {
 }
 
 type SetInnerHTML struct {
-	vnode Node
-	inner []byte
+	VNode Node
+	Inner []byte
 }
 
 func (p *SetInnerHTML) Patch(root dom.Element) error {
-	switch p.vnode.(type) {
+	fmt.Printf("%+v\n", root)
+	switch p.VNode.(type) {
 	case (*Element):
-		vEl := p.vnode.(*Element)
+		vEl := p.VNode.(*Element)
 		el := root.QuerySelector(vEl.Selector())
-		el.SetInnerHTML(string(p.inner))
+		el.SetInnerHTML(string(p.Inner))
 	default:
-		return fmt.Errorf("Don't know how to apply SetInnerHTML patch with vnode of type %T", p.vnode)
+		return fmt.Errorf("Don't know how to apply SetInnerHTML patch with VNode of type %T", p.VNode)
 	}
 	return nil
 }
