@@ -38,64 +38,25 @@ func main() {
 			document.QuerySelector("body").RemoveChild(sandbox)
 		})
 
-		jasmine.XIt("works with a single root element", func() {
+		jasmine.It("works with a single root element", func() {
 			// Parse some source html into a tree
 			html := "<div></div>"
 			tree := setUpDOM(html, sandbox)
-
-			// Use the selector calculated by the virutal element
-			// to select the corresponding real element in the DOM
-			vEl := tree.Roots[0].(*vdom.Element)
-			gotEl := sandbox.QuerySelector(vEl.Selector())
-			expectedEl := sandbox.ChildNodes()[0]
-			expectExistsInDom(gotEl)
-			jasmine.Expect(gotEl).ToEqual(expectedEl)
+			testSelectors(tree, sandbox)
 		})
 
 		jasmine.It("works with a ul and nested lis", func() {
 			// Parse some html into a tree
 			html := "<ul><li>one</li><li>two</li><li>three</li></ul>"
 			tree := setUpDOM(html, sandbox)
-
-			// Use the selector calculated by the virutal element
-			// to select the corresponding real element in the DOM
-			vEl := tree.Roots[0].(*vdom.Element)
-			gotEl := sandbox.QuerySelector(vEl.Selector())
-			expectedEl := sandbox.ChildNodes()[0]
-			expectExistsInDom(gotEl)
-			jasmine.Expect(gotEl).ToEqual(expectedEl)
-
-			// Now do the same thing for each child li element
-			for i, vNode := range vEl.Children() {
-				vLi := vNode.(*vdom.Element)
-				gotLi := sandbox.QuerySelector(vLi.Selector())
-				expectedLi := expectedEl.ChildNodes()[i]
-				expectExistsInDom(gotLi)
-				jasmine.Expect(gotLi).ToEqual(expectedLi)
-			}
+			testSelectors(tree, sandbox)
 		})
 
 		jasmine.It("works with a form with autoclosed tags", func() {
 			// Parse some html into a tree
 			html := `<form method="post"><input type="text" name="firstName"><input type="text" name="lastName"></form>`
 			tree := setUpDOM(html, sandbox)
-
-			// Use the selector calculated by the virutal element
-			// to select the corresponding real element in the DOM
-			vEl := tree.Roots[0].(*vdom.Element)
-			gotEl := sandbox.QuerySelector(vEl.Selector())
-			expectedEl := sandbox.ChildNodes()[0]
-			expectExistsInDom(gotEl)
-			jasmine.Expect(gotEl).ToEqual(expectedEl)
-
-			// Now do the same thing for each child input element
-			for i, vNode := range vEl.Children() {
-				vInput := vNode.(*vdom.Element)
-				gotInput := sandbox.QuerySelector(vInput.Selector())
-				expectedInput := expectedEl.ChildNodes()[i]
-				expectExistsInDom(gotInput)
-				jasmine.Expect(gotInput).ToEqual(expectedInput)
-			}
+			testSelectors(tree, sandbox)
 		})
 	})
 }
@@ -117,4 +78,28 @@ func expectExistsInDom(el dom.Element) {
 	jqEl := jq(el)
 	js.Global.Call("expect", jqEl).Call("toExist")
 	js.Global.Call("expect", jqEl).Call("toBeInDOM")
+}
+
+func testSelectors(tree *vdom.Tree, root dom.Element) {
+	for i, vRoot := range tree.Roots {
+		if vEl, ok := vRoot.(*vdom.Element); ok {
+			// If vRoot is an element, test its Selector method
+			expectedEl := root.ChildNodes()[i].(dom.Element)
+			testSelector(vEl, root, expectedEl)
+		}
+	}
+}
+
+func testSelector(vEl *vdom.Element, root, expectedEl dom.Element) {
+	gotEl := root.QuerySelector(vEl.Selector())
+	expectExistsInDom(gotEl)
+	jasmine.Expect(gotEl).ToEqual(expectedEl)
+	// Test vEl's children recursively
+	for i, vChild := range vEl.Children() {
+		if vChildEl, ok := vChild.(*vdom.Element); ok {
+			// If vRoot is an element, test its Selector method
+			expectedChildEl := expectedEl.ChildNodes()[i].(dom.Element)
+			testSelector(vChildEl, root, expectedChildEl)
+		}
+	}
 }
