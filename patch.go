@@ -25,6 +25,7 @@ type Replace struct {
 	New Node
 }
 
+// BUG: doesn't work if old has sibling elements
 func (p *Replace) Patch(root dom.Element) error {
 	var parent dom.Element
 	if p.Old.Parent() != nil {
@@ -32,6 +33,8 @@ func (p *Replace) Patch(root dom.Element) error {
 	} else {
 		parent = root
 	}
+	// TODO: To fix the bug, we need to find both nodes in the DOM
+	// and use ReplaceChild instead of SetInnerHTML
 	parent.SetInnerHTML(string(p.New.HTML()))
 	return nil
 }
