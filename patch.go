@@ -36,3 +36,19 @@ func (p *SetInnerHTML) Patch(root dom.Element) error {
 	}
 	return nil
 }
+
+type Remove struct {
+	Node Node
+}
+
+func (p *Remove) Patch(root dom.Element) error {
+	switch p.Node.(type) {
+	case (*Element):
+		vEl := p.Node.(*Element)
+		el := root.QuerySelector(vEl.Selector())
+		el.ParentNode().RemoveChild(el)
+	default:
+		return fmt.Errorf("Don't know how to apply Remove patch with Node of type %T", p.Node)
+	}
+	return nil
+}
