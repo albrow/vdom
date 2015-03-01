@@ -20,19 +20,19 @@ func (ps PatchSet) Patch(root dom.Element) error {
 	return nil
 }
 
-type SetInnerHTML struct {
-	Node  Node
-	Inner []byte
+type Replace struct {
+	Old Node
+	New Node
 }
 
-func (p *SetInnerHTML) Patch(root dom.Element) error {
-	switch p.Node.(type) {
+func (p *Replace) Patch(root dom.Element) error {
+	switch p.Old.(type) {
 	case (*Element):
-		vEl := p.Node.(*Element)
-		el := root.QuerySelector(vEl.Selector())
-		el.SetInnerHTML(string(p.Inner))
+		oldEl := p.Old.(*Element)
+		parent := root.QuerySelector(oldEl.Selector()).ParentElement()
+		parent.SetInnerHTML(string(p.New.HTML()))
 	default:
-		return fmt.Errorf("Don't know how to apply SetInnerHTML patch with Node of type %T", p.Node)
+		return fmt.Errorf("Don't know how to apply Replace patch with Node of type %T", p.Old)
 	}
 	return nil
 }

@@ -60,7 +60,7 @@ func main() {
 		})
 	})
 
-	jasmine.Describe("InnerHTML Patch", func() {
+	jasmine.Describe("Replace Patch", func() {
 
 		// sandbox is a div with id = sandbox. It will be
 		// created and cleaned up for each test.
@@ -80,44 +80,44 @@ func main() {
 
 		jasmine.It("can be applied directly", func() {
 			// Parse some source html into a tree
-			html := "<div></div>"
+			html := "<div>Old</div>"
 			tree := setUpDOM(html, sandbox)
-
+			// Create a new tree
+			newTree, err := vdom.Parse([]byte("<div>New</div>"))
+			jasmine.Expect(err).ToBe(nil)
 			// Create a patch manually
-			patch := vdom.SetInnerHTML{
-				Node:  tree.Roots[0],
-				Inner: []byte("Hello"),
+			patch := vdom.Replace{
+				Old: tree.Roots[0],
+				New: newTree.Roots[0],
 			}
-
 			// Apply the patch with sandbox as the root
-			err := patch.Patch(sandbox)
+			err = patch.Patch(sandbox)
 			jasmine.Expect(err).ToEqual(nil)
-
 			// Test that the patch was applied
 			div := sandbox.ChildNodes()[0].(dom.Element)
-			jasmine.Expect(div.InnerHTML()).ToEqual("Hello")
+			jasmine.Expect(div.InnerHTML()).ToEqual("New")
 		})
 
 		jasmine.It("can be applied as part of a patch set", func() {
 			// Parse some source html into a tree
-			html := "<div></div>"
+			html := "<div>Old</div>"
 			tree := setUpDOM(html, sandbox)
-
-			// Create a patch set manually
+			// Create a new tree
+			newTree, err := vdom.Parse([]byte("<div>New</div>"))
+			jasmine.Expect(err).ToBe(nil)
+			// Create a patch manually
 			patchSet := vdom.PatchSet{
-				&vdom.SetInnerHTML{
-					Node:  tree.Roots[0],
-					Inner: []byte("Hello"),
+				&vdom.Replace{
+					Old: tree.Roots[0],
+					New: newTree.Roots[0],
 				},
 			}
-
 			// Apply the patch set with sandbox as the root
-			err := patchSet.Patch(sandbox)
+			err = patchSet.Patch(sandbox)
 			jasmine.Expect(err).ToEqual(nil)
-
-			// Test that the patch set was applied
+			// Test that the patch was applied
 			div := sandbox.ChildNodes()[0].(dom.Element)
-			jasmine.Expect(div.InnerHTML()).ToEqual("Hello")
+			jasmine.Expect(div.InnerHTML()).ToEqual("New")
 		})
 	})
 
