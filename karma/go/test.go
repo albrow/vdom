@@ -143,6 +143,27 @@ func main() {
 			commentNode := sandbox.ChildNodes()[0].(*dom.BasicHTMLElement)
 			jasmine.Expect(commentNode.NodeValue()).ToEqual("new")
 		})
+
+		jasmine.It("works with nested siblings", func() {
+			// Parse some source html into a tree
+			html := "<ul><li>one</li><li>two</li><li>three</li></ul>"
+			tree := setUpDOM(html, sandbox)
+			// Create a new tree, which only consists of one of the lis
+			// We want to change it from one to uno
+			newTree, err := vdom.Parse([]byte("<li>uno</li>"))
+			jasmine.Expect(err).ToBe(nil)
+			// Create a patch manually
+			patch := vdom.Replace{
+				Old: tree.Roots[0].Children()[0],
+				New: newTree.Roots[0],
+			}
+			// Apply the patch set with sandbox as the root
+			err = patch.Patch(sandbox)
+			jasmine.Expect(err).ToEqual(nil)
+			// Test that the patch was applied
+			ul := sandbox.ChildNodes()[0].(*dom.HTMLUListElement)
+			jasmine.Expect(ul.InnerHTML()).ToBe("<li>uno</li><li>two</li><li>three</li>")
+		})
 	})
 
 	jasmine.Describe("Remove patch", func() {
