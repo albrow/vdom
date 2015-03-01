@@ -26,14 +26,13 @@ type Replace struct {
 }
 
 func (p *Replace) Patch(root dom.Element) error {
-	switch p.Old.(type) {
-	case (*Element):
-		oldEl := p.Old.(*Element)
-		parent := root.QuerySelector(oldEl.Selector()).ParentElement()
-		parent.SetInnerHTML(string(p.New.HTML()))
-	default:
-		return fmt.Errorf("Don't know how to apply Replace patch with Node of type %T", p.Old)
+	var parent dom.Element
+	if p.Old.Parent() != nil {
+		parent = root.QuerySelector(p.Old.Parent().Selector())
+	} else {
+		parent = root
 	}
+	parent.SetInnerHTML(string(p.New.HTML()))
 	return nil
 }
 

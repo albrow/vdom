@@ -60,7 +60,7 @@ func main() {
 		})
 	})
 
-	jasmine.Describe("Replace Patch", func() {
+	jasmine.Describe("Replace patch", func() {
 
 		// sandbox is a div with id = sandbox. It will be
 		// created and cleaned up for each test.
@@ -78,12 +78,12 @@ func main() {
 			document.QuerySelector("body").RemoveChild(sandbox)
 		})
 
-		jasmine.It("can be applied directly", func() {
+		jasmine.It("works with a single root element", func() {
 			// Parse some source html into a tree
-			html := "<div>Old</div>"
+			html := `<div id="old"></div>`
 			tree := setUpDOM(html, sandbox)
 			// Create a new tree
-			newTree, err := vdom.Parse([]byte("<div>New</div>"))
+			newTree, err := vdom.Parse([]byte(`<div id="new"></div>`))
 			jasmine.Expect(err).ToBe(nil)
 			// Create a patch manually
 			patch := vdom.Replace{
@@ -94,34 +94,58 @@ func main() {
 			err = patch.Patch(sandbox)
 			jasmine.Expect(err).ToEqual(nil)
 			// Test that the patch was applied
-			div := sandbox.ChildNodes()[0].(dom.Element)
-			jasmine.Expect(div.InnerHTML()).ToEqual("New")
+			children := sandbox.ChildNodes()
+			jasmine.Expect(len(children)).ToBe(1)
+			div := children[0].(dom.Element)
+			jasmine.Expect(div.ID()).ToEqual("new")
 		})
 
-		jasmine.It("can be applied as part of a patch set", func() {
+		jasmine.It("works with a text root", func() {
 			// Parse some source html into a tree
-			html := "<div>Old</div>"
+			html := "Old"
 			tree := setUpDOM(html, sandbox)
 			// Create a new tree
-			newTree, err := vdom.Parse([]byte("<div>New</div>"))
+			newTree, err := vdom.Parse([]byte("New"))
 			jasmine.Expect(err).ToBe(nil)
 			// Create a patch manually
-			patchSet := vdom.PatchSet{
-				&vdom.Replace{
-					Old: tree.Roots[0],
-					New: newTree.Roots[0],
-				},
+			patch := vdom.Replace{
+				Old: tree.Roots[0],
+				New: newTree.Roots[0],
 			}
 			// Apply the patch set with sandbox as the root
-			err = patchSet.Patch(sandbox)
+			err = patch.Patch(sandbox)
 			jasmine.Expect(err).ToEqual(nil)
 			// Test that the patch was applied
-			div := sandbox.ChildNodes()[0].(dom.Element)
-			jasmine.Expect(div.InnerHTML()).ToEqual("New")
+			children := sandbox.ChildNodes()
+			jasmine.Expect(len(children)).ToBe(1)
+			textNode := children[0].(*dom.Text)
+			jasmine.Expect(textNode.NodeValue()).ToBe("New")
+		})
+
+		jasmine.It("works with a comment root", func() {
+			// Parse some source html into a tree
+			html := "<!--old-->"
+			tree := setUpDOM(html, sandbox)
+			// Create a new tree
+			newTree, err := vdom.Parse([]byte("<!--new-->"))
+			jasmine.Expect(err).ToBe(nil)
+			// Create a patch manually
+			patch := vdom.Replace{
+				Old: tree.Roots[0],
+				New: newTree.Roots[0],
+			}
+			// Apply the patch set with sandbox as the root
+			err = patch.Patch(sandbox)
+			jasmine.Expect(err).ToEqual(nil)
+			// Test that the patch was applied
+			children := sandbox.ChildNodes()
+			jasmine.Expect(len(children)).ToBe(1)
+			commentNode := sandbox.ChildNodes()[0].(*dom.BasicHTMLElement)
+			jasmine.Expect(commentNode.NodeValue()).ToEqual("new")
 		})
 	})
 
-	jasmine.Describe("Remove Patch", func() {
+	jasmine.Describe("Remove patch", func() {
 
 		// sandbox is a div with id = sandbox. It will be
 		// created and cleaned up for each test.
