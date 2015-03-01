@@ -124,15 +124,11 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		}
 		// The currentParent has no more children.
 		// The next node(s) we find must be children of currentParent.parent.
-		var parentParent *Element
 		if currentParent.parent != nil {
-			var ok bool
-			parentParent, ok = currentParent.parent.(*Element)
-			if !ok {
-				return nil, fmt.Errorf("Expected parent to be type *Element, but got type %T", currentParent.parent)
-			}
+			nextParent = currentParent.parent
+		} else {
+			nextParent = nil
 		}
-		nextParent = parentParent
 	case xml.CharData:
 		charData := token.(xml.CharData)
 		// Parse the value from the xml.CharData

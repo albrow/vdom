@@ -25,7 +25,7 @@ func (t *Tree) HTML() []byte {
 // A Node is an element inside a tree.
 type Node interface {
 	// Parent returns the parent node or nil if there is none
-	Parent() Node
+	Parent() *Element
 	// Children returns a slice of child nodes or nil if there
 	// are none
 	Children() []Node
@@ -45,7 +45,7 @@ type Attr struct {
 type Element struct {
 	Name          string
 	Attrs         []Attr
-	parent        Node
+	parent        *Element
 	children      []Node
 	tree          *Tree
 	srcStart      int
@@ -56,7 +56,7 @@ type Element struct {
 	selector      string
 }
 
-func (e *Element) Parent() Node {
+func (e *Element) Parent() *Element {
 	return e.parent
 }
 
@@ -130,10 +130,10 @@ func (e *Element) Compare(other *Element) (bool, string) {
 // not surrounded by tags.
 type Text struct {
 	Value  []byte
-	parent Node
+	parent *Element
 }
 
-func (t *Text) Parent() Node {
+func (t *Text) Parent() *Element {
 	return t.parent
 }
 
@@ -160,10 +160,10 @@ func (t *Text) Compare(other *Text) (bool, string) {
 // Value does not include the <!-- and --> markers.
 type Comment struct {
 	Value  []byte
-	parent Node
+	parent *Element
 }
 
-func (c *Comment) Parent() Node {
+func (c *Comment) Parent() *Element {
 	return c.parent
 }
 
@@ -194,10 +194,10 @@ func (c *Comment) Compare(other *Comment) (bool, string) {
 type ProcInst struct {
 	Target string
 	Inst   []byte
-	parent Node
+	parent *Element
 }
 
-func (p *ProcInst) Parent() Node {
+func (p *ProcInst) Parent() *Element {
 	return p.parent
 }
 
@@ -233,10 +233,10 @@ func (p *ProcInst) Compare(other *ProcInst) (bool, string) {
 // does not include the <! and > markers.
 type Directive struct {
 	Value  []byte
-	parent Node
+	parent *Element
 }
 
-func (d *Directive) Parent() Node {
+func (d *Directive) Parent() *Element {
 	return d.parent
 }
 
