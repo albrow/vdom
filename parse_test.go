@@ -51,29 +51,6 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
-			name: "ProcInst root",
-			src:  []byte("<?target inst?>"),
-			expectedTree: &Tree{
-				Roots: []Node{
-					&ProcInst{
-						Target: "target",
-						Inst:   []byte("inst"),
-					},
-				},
-			},
-		},
-		{
-			name: "Directive root",
-			src:  []byte("<!doctype html>"),
-			expectedTree: &Tree{
-				Roots: []Node{
-					&Directive{
-						Value: []byte("doctype html"),
-					},
-				},
-			},
-		},
-		{
 			name: "ul with nested li's",
 			src:  []byte("<ul><li>one</li><li>two</li><li>three</li></ul>"),
 			expectedTree: &Tree{
@@ -177,12 +154,9 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name: "Multiple roots",
-			src:  []byte("<!doctype html><div></div>Hello<!--comment--><?target inst?>"),
+			src:  []byte("<div></div>Hello<!--comment-->"),
 			expectedTree: &Tree{
 				Roots: []Node{
-					&Directive{
-						Value: []byte("doctype html"),
-					},
 					&Element{
 						Name: "div",
 					},
@@ -191,10 +165,6 @@ func TestParse(t *testing.T) {
 					},
 					&Comment{
 						Value: []byte("comment"),
-					},
-					&ProcInst{
-						Target: "target",
-						Inst:   []byte("inst"),
 					},
 				},
 			},
@@ -249,22 +219,6 @@ func TestHTML(t *testing.T) {
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte("<!--comment-->")
 				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root comment node")
-			},
-		},
-		{
-			name: "ProcInst root",
-			src:  []byte("<?target inst?>"),
-			testFunc: func(tree *Tree) error {
-				expectedHTML := []byte("<?target inst?>")
-				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root proc inst")
-			},
-		},
-		{
-			name: "Directive root",
-			src:  []byte("<!doctype html>"),
-			testFunc: func(tree *Tree) error {
-				expectedHTML := []byte("<!doctype html>")
-				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root directive")
 			},
 		},
 		{
@@ -370,14 +324,12 @@ func TestHTML(t *testing.T) {
 		},
 		{
 			name: "Multiple roots",
-			src:  []byte("<!doctype html><div></div>Hello<!--comment--><?target inst?>"),
+			src:  []byte("<div></div>Hello<!--comment-->"),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := [][]byte{
-					[]byte(`<!doctype html>`),
 					[]byte(`<div></div>`),
 					[]byte(`Hello`),
 					[]byte(`<!--comment-->`),
-					[]byte(`<?target inst?>`),
 				}
 				for i, root := range tree.Roots {
 					desc := fmt.Sprintf("root node %d of type %T", i, root)

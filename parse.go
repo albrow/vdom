@@ -158,34 +158,9 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		resultingNode = comment
 		nextParent = currentParent
 	case xml.ProcInst:
-		xmlProcInst := token.(xml.ProcInst)
-		// Parse the value from the xml.ProcInst
-		proc := &ProcInst{
-			Target: xmlProcInst.Target,
-			Inst:   xmlProcInst.Inst,
-		}
-		if currentParent != nil {
-			// Set this element's parent
-			proc.parent = currentParent
-			// Add this element to the currentParent's children
-			currentParent.children = append(currentParent.children, proc)
-		}
-		resultingNode = proc
-		nextParent = currentParent
+		return nil, fmt.Errorf("parse error: found token of type xml.ProcInst, which is not allowed in html")
 	case xml.Directive:
-		xmlDir := token.(xml.Directive)
-		// Parse the value from the xml.Directive
-		dir := &Directive{
-			Value: []byte(xmlDir.Copy()),
-		}
-		if currentParent != nil {
-			// Set this element's parent
-			dir.parent = currentParent
-			// Add this element to the currentParent's children
-			currentParent.children = append(currentParent.children, dir)
-		}
-		resultingNode = dir
-		nextParent = currentParent
+		return nil, fmt.Errorf("parse error: found token of type xml.Directive, which is not allowed in html")
 	}
 	if resultingNode != nil && currentParent == nil {
 		// If this node has no parents, it is one of the roots

@@ -190,79 +190,6 @@ func (c *Comment) Compare(other *Comment) (bool, string) {
 	return true, ""
 }
 
-// ProcInst is an xml/html processing instruction of the form <?target inst?>
-type ProcInst struct {
-	Target string
-	Inst   []byte
-	parent *Element
-}
-
-func (p *ProcInst) Parent() *Element {
-	return p.parent
-}
-
-func (p *ProcInst) Children() []Node {
-	// A processing instruction node can't have any children
-	return nil
-}
-
-func (p *ProcInst) HTML() []byte {
-	// Re-add the open and close for the tag
-	result := []byte("<?")
-	result = append(result, []byte(p.Target)...)
-	result = append(result, byte(' '))
-	result = append(result, p.Inst...)
-	result = append(result, []byte("?>")...)
-	return result
-}
-
-// Compare non-recursively compares p to other. It does not check
-// the parent fields since they can be a Node with any underlying type.
-// If you want to compare the parent fields, use CompareNodes.
-func (p *ProcInst) Compare(other *ProcInst) (bool, string) {
-	if p.Target != other.Target {
-		return false, fmt.Sprintf("p.Target was %s but other.Target was %s", p.Target, other.Target)
-	}
-	if string(p.Inst) != string(other.Inst) {
-		return false, fmt.Sprintf("p.Inst was %s but other.Inst was %s", string(p.Inst), string(other.Inst))
-	}
-	return true, ""
-}
-
-// Directive is an xml/html directive of the form  <!value>. Value
-// does not include the <! and > markers.
-type Directive struct {
-	Value  []byte
-	parent *Element
-}
-
-func (d *Directive) Parent() *Element {
-	return d.parent
-}
-
-func (d *Directive) Children() []Node {
-	// A directive node can't have any children
-	return nil
-}
-
-func (d *Directive) HTML() []byte {
-	// Re-add the open and close for the tag
-	result := []byte("<!")
-	result = append(result, d.Value...)
-	result = append(result, []byte(">")...)
-	return result
-}
-
-// Compare non-recursively compares d to other. It does not check
-// the parent fields since they can be a Node with any underlying type.
-// If you want to compare the parent fields, use CompareNodes.
-func (d *Directive) Compare(other *Directive) (bool, string) {
-	if string(d.Value) != string(other.Value) {
-		return false, fmt.Sprintf("d.Value was %s but other.Value was %s", string(d.Value), string(other.Value))
-	}
-	return true, ""
-}
-
 // Compare recursively compares t to other. It returns false and a detailed
 // message if n does not equal other. Otherwise, it returns true and an empty
 // string. NOTE: Comare never checks the parent properties of t's
@@ -307,18 +234,6 @@ func CompareNodes(n Node, other Node) (bool, string) {
 		comment := n.(*Comment)
 		otherComment := other.(*Comment)
 		if match, msg := comment.Compare(otherComment); !match {
-			return false, msg
-		}
-	case *ProcInst:
-		proc := n.(*ProcInst)
-		otherProc := other.(*ProcInst)
-		if match, msg := proc.Compare(otherProc); !match {
-			return false, msg
-		}
-	case *Directive:
-		dir := n.(*Directive)
-		otherDir := other.(*Directive)
-		if match, msg := dir.Compare(otherDir); !match {
 			return false, msg
 		}
 	default:
