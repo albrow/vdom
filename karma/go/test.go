@@ -59,6 +59,67 @@ func main() {
 			testSelectors(tree, sandbox)
 		})
 	})
+
+	jasmine.Describe("InnerHTML Patch", func() {
+
+		// sandbox is a div with id = sandbox. It will be
+		// created and cleaned up for each test.
+		var sandbox dom.Element
+
+		jasmine.BeforeEach(func() {
+			if sandbox == nil {
+				sandbox = document.CreateElement("div")
+				sandbox.SetAttribute("id", "sandbox")
+			}
+			document.QuerySelector("body").AppendChild(sandbox)
+		})
+
+		jasmine.AfterEach(func() {
+			document.QuerySelector("body").RemoveChild(sandbox)
+		})
+
+		jasmine.It("can be applied directly", func() {
+			// Parse some source html into a tree
+			html := "<div></div>"
+			tree := setUpDOM(html, sandbox)
+
+			// Create a patch manually
+			patch := vdom.SetInnerHTML{
+				Node:  tree.Roots[0],
+				Inner: []byte("Hello"),
+			}
+
+			// Apply the patch with sandbox as the root
+			err := patch.Patch(sandbox)
+			jasmine.Expect(err).ToEqual(nil)
+
+			// Test that the patch was applied
+			div := sandbox.ChildNodes()[0].(dom.Element)
+			jasmine.Expect(div.InnerHTML()).ToEqual("Hello")
+		})
+
+		jasmine.It("can be applied as part of a patch set", func() {
+			// Parse some source html into a tree
+			html := "<div></div>"
+			tree := setUpDOM(html, sandbox)
+
+			// Create a patch set manually
+			patchSet := vdom.PatchSet{
+				&vdom.SetInnerHTML{
+					Node:  tree.Roots[0],
+					Inner: []byte("Hello"),
+				},
+			}
+
+			// Apply the patch set with sandbox as the root
+			err := patchSet.Patch(sandbox)
+			jasmine.Expect(err).ToEqual(nil)
+
+			// Test that the patch set was applied
+			div := sandbox.ChildNodes()[0].(dom.Element)
+			jasmine.Expect(div.InnerHTML()).ToEqual("Hello")
+		})
+	})
 }
 
 // setUpDOM parses html into a virtual tree, then adds it to the

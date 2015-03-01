@@ -6,31 +6,33 @@ import (
 )
 
 type Patcher interface {
-	Patch(root dom.Element)
+	Patch(root dom.Element) error
 }
 
 type PatchSet []Patcher
 
-func (ps PatchSet) Patch(root dom.Element) {
+func (ps PatchSet) Patch(root dom.Element) error {
 	for _, patch := range ps {
-		patch.Patch(root)
+		if err := patch.Patch(root); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 type SetInnerHTML struct {
-	VNode Node
+	Node  Node
 	Inner []byte
 }
 
 func (p *SetInnerHTML) Patch(root dom.Element) error {
-	fmt.Printf("%+v\n", root)
-	switch p.VNode.(type) {
+	switch p.Node.(type) {
 	case (*Element):
-		vEl := p.VNode.(*Element)
+		vEl := p.Node.(*Element)
 		el := root.QuerySelector(vEl.Selector())
 		el.SetInnerHTML(string(p.Inner))
 	default:
-		return fmt.Errorf("Don't know how to apply SetInnerHTML patch with VNode of type %T", p.VNode)
+		return fmt.Errorf("Don't know how to apply SetInnerHTML patch with Node of type %T", p.Node)
 	}
 	return nil
 }
