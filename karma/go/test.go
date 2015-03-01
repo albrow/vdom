@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/albrow/jasmine"
+	"github.com/JohannWeging/jasmine"
 	"github.com/albrow/vdom"
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/jquery"
