@@ -488,6 +488,8 @@ func expectInnerHTMLEquals(expected []byte, got []byte, description string) erro
 	return nil
 }
 
+// TestSelector tests the Selector method for each element in the virtual tree for various
+// different inputs.
 func TestSelector(t *testing.T) {
 	// We'll use table-driven testing here.
 	testCases := []struct {

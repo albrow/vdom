@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-// A Tree is an in-memory representation of a DOM tree
+// A Tree is a virtual, in-memory representation of a DOM tree
 type Tree struct {
 	Roots  []Node
 	reader *IndexedByteReader
@@ -14,9 +14,7 @@ type Tree struct {
 }
 
 // HTML returns the html of this tree and recursively its children
-// as a slice of bytes. The slice is a property of the tree and is
-// not safe to modify it directly. If you need to modify it, copy it
-// first.
+// as a slice of bytes.
 func (t *Tree) HTML() []byte {
 	escaped := string(t.src)
 	return []byte(html.UnescapeString(escaped))
@@ -40,13 +38,13 @@ type Node interface {
 	Index() []int
 }
 
-// Attr is an xml/html attribute
+// Attr is an html attribute
 type Attr struct {
 	Name  string
 	Value string
 }
 
-// Element is an xml/html element, e.g., <div></div>. Name does not include the
+// Element is an html element, e.g., <div></div>. Name does not include the
 // <, >, or / symbols.
 type Element struct {
 	Name          string
@@ -88,7 +86,7 @@ func (e *Element) HTML() []byte {
 // InnerHTML returns the unescaped html inside of e. So if e
 // is <ul><li>one</li><li>two</li></ul>, it will return
 // <li>one</li><li>two</li>. Since Element is the only type that
-// can have children, this only makes since for the Element type.
+// can have children, this only makes sense for the Element type.
 func (e *Element) InnerHTML() []byte {
 	if e.autoClosed {
 		// If the tag was autoclosed, it has no children, and therefore no inner html.
@@ -100,12 +98,9 @@ func (e *Element) InnerHTML() []byte {
 }
 
 // Selector returns a css selector which can be used to find
-// the corresponding element in the actual DOM. The selector is
-// relative to the parent of the tree. So if the virtual tree should
-// have a parent div in the actual DOM, you could find the
-// actual element corresponding to the virtual element e via
-// parentDiv.QuerySelector(e.Selector), or with the jquery bindings,
-// jquery.NewJQuery(parentDiv).Find(e.Selector).
+// the corresponding element in the actual DOM. The selector
+// should be applied to the root of the tree, i.e. the starting
+// point for the virtual tree in the actual DOM.
 func (e *Element) Selector() string {
 	// Simply use the index field to construct a selector with nth-child.
 	selector := fmt.Sprintf("*:nth-child(%d)", e.index[0]+1)
@@ -120,9 +115,8 @@ func (e *Element) Index() []int {
 }
 
 // Compare non-recursively compares e to other. It does not check
-// the children or parent fields since they can be a Node with
-// any underlying type. If you want to compare the parent and children
-// fields, use CompareNodes.
+// the child nodes since they can be a Node with any underlying type.
+// If you want to compare the parent and children fields, use CompareNodes.
 func (e *Element) Compare(other *Element) (bool, string) {
 	if e.Name != other.Name {
 		return false, fmt.Sprintf("e.Name was %s but other.Name was %s", e.Name, other.Name)
@@ -167,8 +161,8 @@ func (t *Text) Index() []int {
 }
 
 // Compare non-recursively compares t to other. It does not check
-// the parent fields since they can be a Node with any underlying type.
-// If you want to compare the parent fields, use CompareNodes.
+// the child nodes since they can be a Node with any underlying type.
+// If you want to compare the parent and children fields, use CompareNodes.
 func (t *Text) Compare(other *Text) (bool, string) {
 	if string(t.Value) != string(other.Value) {
 		return false, fmt.Sprintf("t.Value was %s but other.Value was %s", string(t.Value), string(other.Value))
@@ -206,8 +200,8 @@ func (c *Comment) Index() []int {
 }
 
 // Compare non-recursively compares c to other. It does not check
-// the parent fields since they can be a Node with any underlying type.
-// If you want to compare the parent fields, use CompareNodes.
+// the child nodes since they can be a Node with any underlying type.
+// If you want to compare the parent and children fields, use CompareNodes.
 func (c *Comment) Compare(other *Comment) (bool, string) {
 	if string(c.Value) != string(other.Value) {
 		return false, fmt.Sprintf("c.Value was %s but other.Value was %s", string(c.Value), string(other.Value))

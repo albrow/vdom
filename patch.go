@@ -16,12 +16,19 @@ func init() {
 	}
 }
 
+// Patcher represents changes that can be made to the DOM.
 type Patcher interface {
+	// Patch applies the given patch to the DOM. The given root
+	// is a relative starting point for the virtual tree in the
+	// actual DOM.
 	Patch(root dom.Element) error
 }
 
+// PatchSet is a set of zero or more Patchers
 type PatchSet []Patcher
 
+// Patch satisfies the Patcher interface and sequentially applies
+// all the patches in the patch set.
 func (ps PatchSet) Patch(root dom.Element) error {
 	for _, patch := range ps {
 		if err := patch.Patch(root); err != nil {
@@ -31,11 +38,14 @@ func (ps PatchSet) Patch(root dom.Element) error {
 	return nil
 }
 
+// Append is a Patcher which will append a child Node to a parent Node.
 type Append struct {
 	Child  Node
 	Parent Node
 }
 
+// Patch satisfies the Patcher interface and applies the change to the
+// actual DOM.
 func (p *Append) Patch(root dom.Element) error {
 	var parent dom.Node
 	if p.Parent != nil {
@@ -48,11 +58,14 @@ func (p *Append) Patch(root dom.Element) error {
 	return nil
 }
 
+// Replace is a Patcher will will replace an old Node with a new Node.
 type Replace struct {
 	Old Node
 	New Node
 }
 
+// Patch satisfies the Patcher interface and applies the change to the
+// actual DOM.
 func (p *Replace) Patch(root dom.Element) error {
 	var parent dom.Node
 	if p.Old.Parent() != nil {
@@ -66,10 +79,13 @@ func (p *Replace) Patch(root dom.Element) error {
 	return nil
 }
 
+// Remove is a Patcher which will remove the given Node.
 type Remove struct {
 	Node Node
 }
 
+// Patch satisfies the Patcher interface and applies the change to the
+// actual DOM.
 func (p *Remove) Patch(root dom.Element) error {
 	var parent dom.Node
 	if p.Node.Parent() != nil {
@@ -82,22 +98,30 @@ func (p *Remove) Patch(root dom.Element) error {
 	return nil
 }
 
+// SettAttr is a Patcher which will set the attribute of the given Node to
+// the given Attr. It will overwrite any previous values for the given Attr.
 type SetAttr struct {
 	Node Node
 	Attr *Attr
 }
 
+// Patch satisfies the Patcher interface and applies the change to the
+// actual DOM.
 func (p *SetAttr) Patch(root dom.Element) error {
 	self := findInDOM(p.Node, root).(dom.Element)
 	self.SetAttribute(p.Attr.Name, p.Attr.Value)
 	return nil
 }
 
+// RemoveAttr is a Patcher which will remove the attribute with the given
+// name from the given Node.
 type RemoveAttr struct {
 	Node     Node
 	AttrName string
 }
 
+// Patch satisfies the Patcher interface and applies the change to the
+// actual DOM.
 func (p *RemoveAttr) Patch(root dom.Element) error {
 	self := findInDOM(p.Node, root).(dom.Element)
 	self.RemoveAttribute(p.AttrName)

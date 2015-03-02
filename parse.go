@@ -6,8 +6,8 @@ import (
 	"io"
 )
 
-// Parse reads escaped html from src and returns a tree structure representing
-// it. It returns an error if there was a problem parsing the html.
+// Parse reads escaped html from src and returns a virtual tree structure
+// representing it. It returns an error if there was a problem parsing the html.
 func Parse(src []byte) (*Tree, error) {
 	// Create a xml.Decoder to read from an IndexedByteReader
 	r := NewIndexedByteReader(src)

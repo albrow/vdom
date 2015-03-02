@@ -12,24 +12,34 @@ var (
 
 func main() {
 
+	// The body element will be used throughout all tests, often as the
+	// root or starting point of the virtual tree in the actual DOM.
 	var body dom.Element
 
+	// Before each test, instantiate the body variable if it is not
+	// already instantiated.
 	jasmine.BeforeEach(func() {
 		if body == nil {
 			body = document.QuerySelector("body")
 		}
 	})
 
+	// After each test, remove everything inside the body element in order
+	// to prepare for the next test.
 	jasmine.AfterEach(func() {
 		body.SetInnerHTML("")
 	})
 
+	// This test is just checks that the code cross-compiled correctly and can
+	// be executed by the karma test runner.
 	jasmine.Describe("Tests", func() {
 		jasmine.It("can be loaded", func() {
 			jasmine.Expect(true).ToBe(true)
 		})
 	})
 
+	// Test the Element.Selector method in the actual DOM with various different
+	// html structures.
 	jasmine.Describe("Selector", func() {
 
 		jasmine.It("works with a single root element", func() {
@@ -54,6 +64,8 @@ func main() {
 		})
 	})
 
+	// Test the Append Patcher in the actual DOM with various different html
+	// structures.
 	jasmine.Describe("Append", func() {
 
 		jasmine.It("works with a single root element", func() {
@@ -86,6 +98,8 @@ func main() {
 		})
 	})
 
+	// Test the Replace Patcher in the actual DOM with various different html
+	// structures.
 	jasmine.Describe("Replace", func() {
 
 		jasmine.It("works with a single root element", func() {
@@ -118,6 +132,8 @@ func main() {
 		})
 	})
 
+	// Test the Remove Patcher in the actual DOM with various different html
+	// structures.
 	jasmine.Describe("Remove", func() {
 
 		jasmine.It("works with a single root element", func() {
@@ -145,6 +161,8 @@ func main() {
 		})
 	})
 
+	// Test the SetAttr Patcher in the actual DOM with various different html
+	// structures.
 	jasmine.Describe("SetAttr", func() {
 
 		jasmine.It("works on a root element", func() {
@@ -177,6 +195,8 @@ func main() {
 		})
 	})
 
+	// Test the RemoveAttr Patcher in the actual DOM with various different html
+	// structures.
 	jasmine.Describe("RemoveAttr", func() {
 
 		jasmine.It("works on a root element", func() {
@@ -217,10 +237,15 @@ func setUpDOM(html string, body dom.Element) *vdom.Tree {
 	return vtree
 }
 
+// expectExistsInDOM invokes jasmine and the dom bindings to check that
+// el exists in the DOM. If it does not, jasmine will report an error.
 func expectExistsInDOM(el dom.Element) {
 	jasmine.Expect(document.Contains(el)).ToBe(true)
 }
 
+// testSelector tests the Selector method for vEl and then recursively
+// iterates through its children and tests the Selector method for them
+// as well.
 func testSelector(vEl *vdom.Element, root, expectedEl dom.Element) {
 	gotEl := root.QuerySelector(vEl.Selector())
 	expectExistsInDOM(gotEl)
@@ -235,6 +260,9 @@ func testSelector(vEl *vdom.Element, root, expectedEl dom.Element) {
 	}
 }
 
+// testSelectors recursively iterates through the virtual tree and the
+// corresponding nodes in the actual DOM and tests the Selector method
+// for every element.
 func testSelectors(tree *vdom.Tree, root dom.Element) {
 	for i, vRoot := range tree.Roots {
 		if vEl, ok := vRoot.(*vdom.Element); ok {
@@ -245,6 +273,9 @@ func testSelectors(tree *vdom.Tree, root dom.Element) {
 	}
 }
 
+// createAndApplyPatcher adds the given html to the actual DOM starting at
+// the given root. Then it invokes the createPatch function to create a Patcher
+// that will act on the new nodes that were created.
 func createAndApplyPatcher(root dom.Element, html string, createPatch func(tree *vdom.Tree) vdom.Patcher) {
 	// Parse some source html into a tree
 	tree := setUpDOM(html, root)
@@ -255,6 +286,8 @@ func createAndApplyPatcher(root dom.Element, html string, createPatch func(tree 
 	jasmine.Expect(err).ToBe(nil)
 }
 
+// newAppendRootPatcher returns an Append Patcher which will simply append a
+// new node with the given newHTML to the DOM at the root of the tree.
 func newAppendRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
 	return func(tree *vdom.Tree) vdom.Patcher {
 		// Create a new tree with the given html
@@ -267,11 +300,16 @@ func newAppendRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
 	}
 }
 
+// testAppendRootPatcher will set up the DOM with an empty root, then create
+// and apply a patch that should append a new element directly to the root, and
+// finally it tests that the patch was applied correctly.
 func testAppendRootPatcher(root dom.Element, newHTML string) {
 	createAndApplyPatcher(root, "", newAppendRootPatcher(newHTML))
 	jasmine.Expect(root.InnerHTML()).ToBe(newHTML)
 }
 
+// newReplaceRootPatcher returns an Replace Patcher which will simply replace
+// the contents of the root with a new element created with newHTML.
 func newReplaceRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
 	return func(tree *vdom.Tree) vdom.Patcher {
 		// Create a new tree with the given html
@@ -286,6 +324,10 @@ func newReplaceRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
 	}
 }
 
+// testReplaceRootPatcher will set up the DOM with a root element created from the
+// given oldHTML, then it will create and apply a patch that should replace the content
+// of the root with a new element created from newHTML, and finally it tests that the
+// patch was applied correctly.
 func testReplaceRootPatcher(root dom.Element, oldHTML string, newHTML string) {
 	createAndApplyPatcher(root, oldHTML, newReplaceRootPatcher(newHTML))
 	// Test that the patch was applied
@@ -294,6 +336,8 @@ func testReplaceRootPatcher(root dom.Element, oldHTML string, newHTML string) {
 	jasmine.Expect(root.InnerHTML()).ToBe(newHTML)
 }
 
+// newRemoveRootPatcher returns an Remove Patcher which will simply remove
+// the first child of the root.
 func newRemoveRootPatcher() func(tree *vdom.Tree) vdom.Patcher {
 	return func(tree *vdom.Tree) vdom.Patcher {
 		// Return a new patch to remove the root from the tree
@@ -303,6 +347,9 @@ func newRemoveRootPatcher() func(tree *vdom.Tree) vdom.Patcher {
 	}
 }
 
+// testReplaceRootPatcher will set up the DOM with a root element created from the
+// given html, then it will create and apply a patch that should remove the first child
+// of the root, and finally it tests that the patch was applied correctly.
 func testRemoveRootPatcher(root dom.Element, html string) {
 	createAndApplyPatcher(root, html, newRemoveRootPatcher())
 	// Test that the patch was applied by testing that the
