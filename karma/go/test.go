@@ -324,6 +324,18 @@ func main() {
 			testDiff(body, `<div><div id="old"></div></div>`, `<div><div id="new"></div></div>`)
 		})
 
+		jasmine.It("creates a nested element with siblings", func() {
+			testDiff(body, "<ul><li>one</li><li>three</li></ul>", "<ul><li>one</li><li>two</li><li>three</li></ul>")
+		})
+
+		jasmine.It("removes a nested element with siblings", func() {
+			testDiff(body, "<ul><li>one</li><li>two</li><li>three</li></ul>", "<ul><li>one</li><li>three</li></ul>")
+		})
+
+		jasmine.It("replaces a nested element siblings", func() {
+			testDiff(body, "<ul><li>one</li><li>two</li><li>three</li></ul>", "<ul><li>one</li><li>dos</li><li>three</li></ul>")
+		})
+
 	})
 }
 
