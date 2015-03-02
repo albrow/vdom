@@ -41,20 +41,28 @@ func (ps PatchSet) Patch(root dom.Element) error {
 // Append is a Patcher which will append a child Node to a parent Node.
 type Append struct {
 	Child  Node
-	Parent Node
+	Parent *Element
 }
 
 // Patch satisfies the Patcher interface and applies the change to the
 // actual DOM.
 func (p *Append) Patch(root dom.Element) error {
+	// fmt.Println("Got parent: ", p.Parent)
+	// fmt.Println("Parent == nil: ", p.Parent == nil)
+	// fmt.Println("Parent != nil: ", p.Parent != nil)
 	var parent dom.Node
 	if p.Parent != nil {
+		// fmt.Println("Finding parent in DOM")
 		parent = findInDOM(p.Parent, root)
 	} else {
+		// fmt.Println("Setting parent as root")
 		parent = root
 	}
+	// fmt.Println("Computed parent: ", parent)
 	child := createForDOM(p.Child)
+	// fmt.Println("Created child: ", child)
 	parent.AppendChild(child)
+	// fmt.Println("Successfully appended")
 	return nil
 }
 

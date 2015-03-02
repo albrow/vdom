@@ -7,49 +7,58 @@ import (
 
 func Diff(t, other *Tree) (PatchSet, error) {
 	patches := []Patcher{}
-	numOtherChildren := len(other.Children)
-	numChildren := len(t.Children)
-	minNumChildren := numOtherChildren
-	if numOtherChildren > numChildren {
+	if err := recursiveDiff(&patches, t.Children, other.Children); err != nil {
+		return nil, err
+	}
+	return patches, nil
+}
+
+func recursiveDiff(patches *[]Patcher, nodes, otherNodes []Node) error {
+
+	numOtherNodes := len(otherNodes)
+	numNodes := len(nodes)
+	minNumNodes := numOtherNodes
+	if numOtherNodes > numNodes {
 		// other has more first-level children than t.
 		// We should append the additional children.
-		for _, otherChild := range other.Children[numChildren:] {
-			patches = append(patches, &Append{
-				Child: otherChild,
+		for _, otherNode := range otherNodes[numNodes:] {
+			*patches = append(*patches, &Append{
+				Parent: otherNode.Parent(),
+				Child:  otherNode,
 			})
 		}
-		minNumChildren = numChildren
-	} else if numChildren > numOtherChildren {
+		minNumNodes = numNodes
+	} else if numNodes > numOtherNodes {
 		// t has more first-level children than other.
 		// We should remove the additional children.
-		for _, child := range t.Children[numOtherChildren:] {
-			patches = append(patches, &Remove{
-				Node: child,
+		for _, node := range nodes[numOtherNodes:] {
+			*patches = append(*patches, &Remove{
+				Node: node,
 			})
 		}
-		minNumChildren = numOtherChildren
+		minNumNodes = numOtherNodes
 	}
-	for i := 0; i < minNumChildren; i++ {
-		otherChild := other.Children[i]
-		child := t.Children[i]
-		if reflect.TypeOf(child) != reflect.TypeOf(otherChild) {
-			// The types don't match. We should replace child
-			// with other child
-			patches = append(patches, &Replace{
-				Old: child,
-				New: otherChild,
+	for i := 0; i < minNumNodes; i++ {
+		otherNode := otherNodes[i]
+		node := nodes[i]
+		if reflect.TypeOf(node) != reflect.TypeOf(otherNode) {
+			// The types don't match. We should replace node
+			// with other node
+			*patches = append(*patches, &Replace{
+				Old: node,
+				New: otherNode,
 			})
 		}
 		// If we've reached here, the types do match. We should compare
 		// based on the type
-		switch otherChild.(type) {
+		switch otherNode.(type) {
 		case *Element:
-			otherEl := otherChild.(*Element)
-			el := child.(*Element)
+			otherEl := otherNode.(*Element)
+			el := node.(*Element)
 			if otherEl.Name != el.Name {
 				// The elements have different tag names. We should replace
 				// el with otherEl
-				patches = append(patches, &Replace{
+				*patches = append(*patches, &Replace{
 					Old: el,
 					New: otherEl,
 				})
@@ -66,7 +75,7 @@ func Diff(t, other *Tree) (PatchSet, error) {
 				// otherEl has more attributes than el
 				// We should add the additional attributes.
 				for _, otherAttr := range otherEl.Attrs[numAttrs:] {
-					patches = append(patches, &SetAttr{
+					*patches = append(*patches, &SetAttr{
 						Node: el,
 						Attr: &otherAttr,
 					})
@@ -76,7 +85,7 @@ func Diff(t, other *Tree) (PatchSet, error) {
 				// el has more attributes than otherEl
 				// We should remove the additional attributes.
 				for _, attr := range el.Attrs[numOtherAttrs:] {
-					patches = append(patches, &RemoveAttr{
+					*patches = append(*patches, &RemoveAttr{
 						Node:     el,
 						AttrName: attr.Name,
 					})
@@ -90,41 +99,43 @@ func Diff(t, other *Tree) (PatchSet, error) {
 				if otherAttr.Name != attr.Name || otherAttr.Value != attr.Value {
 					// The attributes don't match. We should replace attr
 					// with other attr
-					patches = append(patches, &RemoveAttr{
+					*patches = append(*patches, &RemoveAttr{
 						Node:     el,
 						AttrName: attr.Name,
 					})
-					patches = append(patches, &SetAttr{
+					*patches = append(*patches, &SetAttr{
 						Node: el,
 						Attr: &otherAttr,
 					})
 				}
 			}
+			// Recursively apply diff algorithm to each element's children
+			recursiveDiff(patches, el.Children(), otherEl.Children())
 		case *Text:
-			otherText := otherChild.(*Text)
-			text := child.(*Text)
+			otherText := otherNode.(*Text)
+			text := node.(*Text)
 			if string(otherText.Value) != string(text.Value) {
 				// The text nodes don't match. We should replace
 				// text with otherText
-				patches = append(patches, &Replace{
+				*patches = append(*patches, &Replace{
 					Old: text,
 					New: otherText,
 				})
 			}
 		case *Comment:
-			otherComment := otherChild.(*Comment)
-			comment := child.(*Comment)
+			otherComment := otherNode.(*Comment)
+			comment := node.(*Comment)
 			if string(otherComment.Value) != string(comment.Value) {
 				// The comment nodes don't match. We should replace
 				// comment with otherComment
-				patches = append(patches, &Replace{
+				*patches = append(*patches, &Replace{
 					Old: comment,
 					New: otherComment,
 				})
 			}
 		default:
-			return nil, fmt.Errorf("Don't know how to compare node of type %T", otherChild)
+			return fmt.Errorf("Don't know how to compare node of type %T", otherNode)
 		}
 	}
-	return patches, nil
+	return nil
 }

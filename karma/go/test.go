@@ -89,7 +89,7 @@ func main() {
 				// Create a patch manually
 				return &vdom.Append{
 					Child:  newTree.Children[0],
-					Parent: tree.Children[0],
+					Parent: tree.Children[0].(*vdom.Element),
 				}
 			})
 			// Test that the patch was applied
@@ -274,6 +274,54 @@ func main() {
 
 		jasmine.It("replaces a root element attribute", func() {
 			testDiff(body, `<div id="old"></div>`, `<div id="new"></div>`)
+		})
+
+		jasmine.It("creates a nested element", func() {
+			testDiff(body, "<div></div>", "<div><div></div></div>")
+		})
+
+		jasmine.It("removes a nested element", func() {
+			testDiff(body, "<div><div></div></div>", "<div></div>")
+		})
+
+		jasmine.It("replaces a nested element", func() {
+			testDiff(body, "<div><div></div></div>", "<div><span></span></div>")
+		})
+
+		jasmine.It("creates a nested text node", func() {
+			testDiff(body, "<div></div>", "<div>Text</div>")
+		})
+
+		jasmine.It("removes a nested text node", func() {
+			testDiff(body, "<div>Text</div>", "<div></div>")
+		})
+
+		jasmine.It("replaces a nested text node", func() {
+			testDiff(body, "<div>OldText</div>", "<div>NewText</div>")
+		})
+
+		jasmine.It("creates a nested comment node", func() {
+			testDiff(body, "<div></div>", "<div><!--comment--></div>")
+		})
+
+		jasmine.It("removes a nested comment node", func() {
+			testDiff(body, "<div><!--comment--></div>", "<div></div>")
+		})
+
+		jasmine.It("replaces a nested comment node", func() {
+			testDiff(body, "<div><!--old--></div>", "<div><!--new--></div>")
+		})
+
+		jasmine.It("adds a nested element attribute", func() {
+			testDiff(body, "<div><div></div></div>", `<div><div id="foo"></div></div>`)
+		})
+
+		jasmine.It("removes a nested element attribute", func() {
+			testDiff(body, `<div><div id="foo"></div></div>`, "<div><div></div></div>")
+		})
+
+		jasmine.It("replaces a nested element attribute", func() {
+			testDiff(body, `<div><div id="old"></div></div>`, `<div><div id="new"></div></div>`)
 		})
 
 	})
