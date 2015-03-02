@@ -32,6 +32,12 @@ type Node interface {
 	// HTML returns the unescaped html of this node and its
 	// children as a slice of bytes.
 	HTML() []byte
+	// Index returns the child indexes starting at the root of the
+	// virtual tree that can be used to get to this node. So if this
+	// node is the second child of its parent, and its parent is the first
+	// child of some root node, Index should return [0, 1]. This means we
+	// can get to this node via root.ChildNodes()[0].ChildNodes()[1].
+	Index() []int
 }
 
 // Attr is an xml/html attribute
@@ -53,7 +59,7 @@ type Element struct {
 	srcInnerStart int
 	srcInnerEnd   int
 	autoClosed    bool
-	selector      string
+	index         []int
 }
 
 func (e *Element) Parent() *Element {
@@ -101,7 +107,16 @@ func (e *Element) InnerHTML() []byte {
 // parentDiv.QuerySelector(e.Selector), or with the jquery bindings,
 // jquery.NewJQuery(parentDiv).Find(e.Selector).
 func (e *Element) Selector() string {
-	return e.selector
+	// Simply use the index field to construct a selector with nth-child.
+	selector := fmt.Sprintf("*:nth-child(%d)", e.index[0]+1)
+	for _, i := range e.index[1:] {
+		selector += fmt.Sprintf(" > *:nth-child(%d)", i+1)
+	}
+	return selector
+}
+
+func (e *Element) Index() []int {
+	return e.index
 }
 
 // Compare non-recursively compares e to other. It does not check
@@ -131,6 +146,7 @@ func (e *Element) Compare(other *Element) (bool, string) {
 type Text struct {
 	Value  []byte
 	parent *Element
+	index  []int
 }
 
 func (t *Text) Parent() *Element {
@@ -144,6 +160,10 @@ func (t *Text) Children() []Node {
 
 func (t *Text) HTML() []byte {
 	return t.Value
+}
+
+func (t *Text) Index() []int {
+	return t.index
 }
 
 // Compare non-recursively compares t to other. It does not check
@@ -161,6 +181,7 @@ func (t *Text) Compare(other *Text) (bool, string) {
 type Comment struct {
 	Value  []byte
 	parent *Element
+	index  []int
 }
 
 func (c *Comment) Parent() *Element {
@@ -178,6 +199,10 @@ func (c *Comment) HTML() []byte {
 	result = append(result, c.Value...)
 	result = append(result, []byte("-->")...)
 	return result
+}
+
+func (c *Comment) Index() []int {
+	return c.index
 }
 
 // Compare non-recursively compares c to other. It does not check

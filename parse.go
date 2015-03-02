@@ -58,10 +58,16 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			})
 		}
 		if currentParent != nil {
+			// Set the index based on how many children we've seen so far
+			el.index = append(currentParent.index, len(currentParent.children))
 			// Set this element's parent
 			el.parent = currentParent
 			// Add this element to the currentParent's children
 			currentParent.children = append(currentParent.children, el)
+		} else {
+			// There is no current parent, so set the index based on the
+			// number of root nodes we have seen so far for this tree
+			el.index = []int{len(tree.Roots)}
 		}
 		// Set the srcStart to indicate where in tree.src the html for this element
 		// starts. Since we don't know the exact length of the starting tag (might be extra whitespace
@@ -74,19 +80,6 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		el.srcStart = start
 		// The innerHTML start is just the current offset
 		el.srcInnerStart = tree.reader.Offset()
-		// Calculate a selector for this element.
-		if currentParent == nil {
-			// There is no current parent. Count the number of other roots in
-			// the tree to determine the nth-child index for this element
-			el.selector = fmt.Sprintf("*:nth-child(%d)", len(tree.Roots)+1)
-		} else {
-			// Count the number of children in the current parent to determine
-			// the nth-child index for this element.
-			subSelector := fmt.Sprintf(" > *:nth-child(%d)", len(currentParent.children))
-			// Then append this to the parent's selector so we can get all the
-			// way from the root to this element.
-			el.selector = currentParent.selector + subSelector
-		}
 		// Set this element to the nextParent. The next node(s) we find
 		// are children of this element until we reach xml.EndElement
 		nextParent = el
@@ -136,10 +129,16 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			Value: []byte(charData.Copy()),
 		}
 		if currentParent != nil {
-			// Set this element's parent
+			// Set the index based on how many children we've seen so far
+			text.index = append(currentParent.index, len(currentParent.children))
+			// Set this text node's parent
 			text.parent = currentParent
-			// Add this element to the currentParent's children
+			// Add this text node to the currentParent's children
 			currentParent.children = append(currentParent.children, text)
+		} else {
+			// There is no current parent, so set the index based on the
+			// number of root nodes we have seen so far for this tree
+			text.index = []int{len(tree.Roots)}
 		}
 		resultingNode = text
 		nextParent = currentParent
@@ -150,10 +149,16 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			Value: []byte(xmlComment.Copy()),
 		}
 		if currentParent != nil {
-			// Set this element's parent
+			// Set the index based on how many children we've seen so far
+			comment.index = append(currentParent.index, len(currentParent.children))
+			// Set this comment node's parent
 			comment.parent = currentParent
-			// Add this element to the currentParent's children
+			// Add this comment node to the currentParent's children
 			currentParent.children = append(currentParent.children, comment)
+		} else {
+			// There is no current parent, so set the index based on the
+			// number of root nodes we have seen so far for this tree
+			comment.index = []int{len(tree.Roots)}
 		}
 		resultingNode = comment
 		nextParent = currentParent
