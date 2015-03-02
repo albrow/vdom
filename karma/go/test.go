@@ -14,6 +14,18 @@ var (
 )
 
 func main() {
+
+	var body dom.Element
+
+	jasmine.BeforeEach(func() {
+		if body == nil {
+			body = document.QuerySelector("body")
+		}
+	})
+	jasmine.AfterEach(func() {
+		body.SetInnerHTML("")
+	})
+
 	jasmine.Describe("Tests", func() {
 		jasmine.It("can be loaded", func() {
 			jasmine.Expect(true).ToBe(true)
@@ -21,18 +33,6 @@ func main() {
 	})
 
 	jasmine.Describe("Selector", func() {
-
-		var body dom.Element
-
-		jasmine.BeforeEach(func() {
-			if body == nil {
-				body = document.QuerySelector("body")
-			}
-		})
-
-		jasmine.AfterEach(func() {
-			body.SetInnerHTML("")
-		})
 
 		jasmine.It("works with a single root element", func() {
 			// Parse some source html into a tree
@@ -57,18 +57,6 @@ func main() {
 	})
 
 	jasmine.Describe("Replace patch", func() {
-
-		var body dom.Element
-
-		jasmine.BeforeEach(func() {
-			if body == nil {
-				body = document.QuerySelector("body")
-			}
-		})
-
-		jasmine.AfterEach(func() {
-			body.SetInnerHTML("")
-		})
 
 		jasmine.It("works with a single root element", func() {
 			testPatch(`<div id="old"></div>`, body, newReplaceRootPatcher(`<div id="new"></div>`), func() {
@@ -120,18 +108,6 @@ func main() {
 	})
 
 	jasmine.Describe("Remove patch", func() {
-
-		var body dom.Element
-
-		jasmine.BeforeEach(func() {
-			if body == nil {
-				body = document.QuerySelector("body")
-			}
-		})
-
-		jasmine.AfterEach(func() {
-			body.SetInnerHTML("")
-		})
 
 		jasmine.It("works with a single root element", func() {
 			testPatch("<div></div>", body, newRemoveRootPatcher(), testRemoveRootPatch(body))
