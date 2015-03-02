@@ -223,6 +223,60 @@ func main() {
 		})
 
 	})
+
+	// Test the Diff function in the actual DOM with various different html
+	// structures.
+	jasmine.Describe("Diff", func() {
+
+		jasmine.It("creates a root element", func() {
+			testDiff(body, "", "<div></div>")
+		})
+
+		jasmine.It("removes a root element", func() {
+			testDiff(body, "<div></div>", "")
+		})
+
+		jasmine.It("replaces a root element", func() {
+			testDiff(body, "<div></div>", "<span></span>")
+		})
+
+		jasmine.It("creates a root text node", func() {
+			testDiff(body, "", "Text")
+		})
+
+		jasmine.It("removes a root text node", func() {
+			testDiff(body, "Text", "")
+		})
+
+		jasmine.It("replaces a root text node", func() {
+			testDiff(body, "OldText", "NewText")
+		})
+
+		jasmine.It("creates a root comment node", func() {
+			testDiff(body, "", "<!--comment-->")
+		})
+
+		jasmine.It("removes a root comment node", func() {
+			testDiff(body, "<!--comment-->", "")
+		})
+
+		jasmine.It("replaces a root comment node", func() {
+			testDiff(body, "<!--old-->", "<!--new-->")
+		})
+
+		jasmine.It("adds a root element attribute", func() {
+			testDiff(body, "<div></div>", `<div id="foo"></div>`)
+		})
+
+		jasmine.It("removes a root element attribute", func() {
+			testDiff(body, `<div id="foo"></div>`, "<div></div>")
+		})
+
+		jasmine.It("replaces a root element attribute", func() {
+			testDiff(body, `<div id="old"></div>`, `<div id="new"></div>`)
+		})
+
+	})
 }
 
 // setUpDOM parses html into a virtual tree, then adds it to the
@@ -356,4 +410,24 @@ func testRemoveRootPatcher(root dom.Element, html string) {
 	// root has no children
 	children := root.ChildNodes()
 	jasmine.Expect(len(children)).ToBe(0)
+}
+
+func testDiff(root dom.Element, oldHTML string, newHTML string) {
+	// Parse some source oldHTML into a tree and add it
+	// to the actual DOM
+	tree := setUpDOM(oldHTML, root)
+	// Create a virtual tree with the newHTML
+	newTree, err := vdom.Parse([]byte(newHTML))
+	jasmine.Expect(err).ToBe(nil)
+	// Use the diff function to calculate the difference between
+	// the trees and return a patch set
+	patches, err := vdom.Diff(tree, newTree)
+	jasmine.Expect(err).ToBe(nil)
+	// Apply the patches to the root in the actual DOM
+	err = patches.Patch(root)
+	jasmine.Expect(err).ToBe(nil)
+	// Check that the root now has innerHTML equal to newHTML,
+	// which would indecate the diff and patch set worked as
+	// expected
+	jasmine.Expect(root.InnerHTML()).ToBe(newHTML)
 }
