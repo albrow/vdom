@@ -79,90 +79,51 @@ func main() {
 		})
 
 		jasmine.It("works with a single root element", func() {
-			// Parse some source html into a tree
-			html := `<div id="old"></div>`
-			tree := setUpDOM(html, sandbox)
-			// Create a new tree
-			newTree, err := vdom.Parse([]byte(`<div id="new"></div>`))
-			jasmine.Expect(err).ToBe(nil)
-			// Create a patch manually
-			patch := vdom.Replace{
-				Old: tree.Roots[0],
-				New: newTree.Roots[0],
-			}
-			// Apply the patch with sandbox as the root
-			err = patch.Patch(sandbox)
-			jasmine.Expect(err).ToEqual(nil)
-			// Test that the patch was applied
-			children := sandbox.ChildNodes()
-			jasmine.Expect(len(children)).ToBe(1)
-			div := children[0].(dom.Element)
-			jasmine.Expect(div.ID()).ToEqual("new")
+			testReplace(`<div id="old"></div>`, sandbox, replaceRootPatch(`<div id="new"></div>`), func() {
+				// Test that the patch was applied
+				children := sandbox.ChildNodes()
+				jasmine.Expect(len(children)).ToBe(1)
+				div := children[0].(dom.Element)
+				jasmine.Expect(div.ID()).ToEqual("new")
+			})
 		})
 
 		jasmine.It("works with a text root", func() {
-			// Parse some source html into a tree
-			html := "Old"
-			tree := setUpDOM(html, sandbox)
-			// Create a new tree
-			newTree, err := vdom.Parse([]byte("New"))
-			jasmine.Expect(err).ToBe(nil)
-			// Create a patch manually
-			patch := vdom.Replace{
-				Old: tree.Roots[0],
-				New: newTree.Roots[0],
-			}
-			// Apply the patch set with sandbox as the root
-			err = patch.Patch(sandbox)
-			jasmine.Expect(err).ToEqual(nil)
-			// Test that the patch was applied
-			children := sandbox.ChildNodes()
-			jasmine.Expect(len(children)).ToBe(1)
-			textNode := children[0].(*dom.Text)
-			jasmine.Expect(textNode.NodeValue()).ToBe("New")
+			testReplace("Old", sandbox, replaceRootPatch("New"), func() {
+				// Test that the patch was applied
+				children := sandbox.ChildNodes()
+				jasmine.Expect(len(children)).ToBe(1)
+				textNode := children[0].(*dom.Text)
+				jasmine.Expect(textNode.NodeValue()).ToBe("New")
+			})
 		})
 
 		jasmine.It("works with a comment root", func() {
-			// Parse some source html into a tree
-			html := "<!--old-->"
-			tree := setUpDOM(html, sandbox)
-			// Create a new tree
-			newTree, err := vdom.Parse([]byte("<!--new-->"))
-			jasmine.Expect(err).ToBe(nil)
-			// Create a patch manually
-			patch := vdom.Replace{
-				Old: tree.Roots[0],
-				New: newTree.Roots[0],
-			}
-			// Apply the patch set with sandbox as the root
-			err = patch.Patch(sandbox)
-			jasmine.Expect(err).ToEqual(nil)
-			// Test that the patch was applied
-			children := sandbox.ChildNodes()
-			jasmine.Expect(len(children)).ToBe(1)
-			commentNode := sandbox.ChildNodes()[0].(*dom.BasicHTMLElement)
-			jasmine.Expect(commentNode.NodeValue()).ToEqual("new")
+			testReplace("<!--old-->", sandbox, replaceRootPatch("<!--new-->"), func() {
+				// Test that the patch was applied
+				children := sandbox.ChildNodes()
+				jasmine.Expect(len(children)).ToBe(1)
+				commentNode := sandbox.ChildNodes()[0].(*dom.BasicHTMLElement)
+				jasmine.Expect(commentNode.NodeValue()).ToEqual("new")
+			})
 		})
 
 		jasmine.It("works with nested siblings", func() {
-			// Parse some source html into a tree
-			html := "<ul><li>one</li><li>two</li><li>three</li></ul>"
-			tree := setUpDOM(html, sandbox)
-			// Create a new tree, which only consists of one of the lis
-			// We want to change it from one to uno
-			newTree, err := vdom.Parse([]byte("<li>uno</li>"))
-			jasmine.Expect(err).ToBe(nil)
-			// Create a patch manually
-			patch := vdom.Replace{
-				Old: tree.Roots[0].Children()[0],
-				New: newTree.Roots[0],
-			}
-			// Apply the patch set with sandbox as the root
-			err = patch.Patch(sandbox)
-			jasmine.Expect(err).ToEqual(nil)
-			// Test that the patch was applied
-			ul := sandbox.ChildNodes()[0].(*dom.HTMLUListElement)
-			jasmine.Expect(ul.InnerHTML()).ToBe("<li>uno</li><li>two</li><li>three</li>")
+			testReplace("<ul><li>one</li><li>two</li><li>three</li></ul>", sandbox, func(tree *vdom.Tree) *vdom.Replace {
+				// Create a new tree, which only consists of one of the lis
+				// We want to change it from one to uno
+				newTree, err := vdom.Parse([]byte("<li>uno</li>"))
+				jasmine.Expect(err).ToBe(nil)
+				// Create a patch manually
+				return &vdom.Replace{
+					Old: tree.Roots[0].Children()[0],
+					New: newTree.Roots[0],
+				}
+			}, func() {
+				// Test that the patch was applied
+				ul := sandbox.ChildNodes()[0].(*dom.HTMLUListElement)
+				jasmine.Expect(ul.InnerHTML()).ToBe("<li>uno</li><li>two</li><li>three</li>")
+			})
 		})
 	})
 
@@ -269,16 +230,6 @@ func expectExistsInDom(el dom.Element) {
 	js.Global.Call("expect", jqEl).Call("toBeInDOM")
 }
 
-func testSelectors(tree *vdom.Tree, root dom.Element) {
-	for i, vRoot := range tree.Roots {
-		if vEl, ok := vRoot.(*vdom.Element); ok {
-			// If vRoot is an element, test its Selector method
-			expectedEl := root.ChildNodes()[i].(dom.Element)
-			testSelector(vEl, root, expectedEl)
-		}
-	}
-}
-
 func testSelector(vEl *vdom.Element, root, expectedEl dom.Element) {
 	gotEl := root.QuerySelector(vEl.Selector())
 	expectExistsInDom(gotEl)
@@ -289,6 +240,42 @@ func testSelector(vEl *vdom.Element, root, expectedEl dom.Element) {
 			// If vRoot is an element, test its Selector method
 			expectedChildEl := expectedEl.ChildNodes()[i].(dom.Element)
 			testSelector(vChildEl, root, expectedChildEl)
+		}
+	}
+}
+
+func testSelectors(tree *vdom.Tree, root dom.Element) {
+	for i, vRoot := range tree.Roots {
+		if vEl, ok := vRoot.(*vdom.Element); ok {
+			// If vRoot is an element, test its Selector method
+			expectedEl := root.ChildNodes()[i].(dom.Element)
+			testSelector(vEl, root, expectedEl)
+		}
+	}
+}
+
+func testReplace(html string, root dom.Element, createPatch func(tree *vdom.Tree) *vdom.Replace, testPatch func()) {
+	// Parse some source html into a tree
+	tree := setUpDOM(html, root)
+	// Create the patch using the provided function
+	patch := createPatch(tree)
+	// Apply the patch using the provided root
+	err := patch.Patch(root)
+	jasmine.Expect(err).ToBe(nil)
+	// Test the patch using the provided function
+	testPatch()
+}
+
+func replaceRootPatch(newHtml string) func(tree *vdom.Tree) *vdom.Replace {
+	return func(tree *vdom.Tree) *vdom.Replace {
+		// Create a new tree with the given html
+		newTree, err := vdom.Parse([]byte(newHtml))
+		jasmine.Expect(err).ToBe(nil)
+		// Return a new patch to the root of the old tree with
+		// the root of the new tree
+		return &vdom.Replace{
+			Old: tree.Roots[0],
+			New: newTree.Roots[0],
 		}
 	}
 }
