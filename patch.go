@@ -31,6 +31,23 @@ func (ps PatchSet) Patch(root dom.Element) error {
 	return nil
 }
 
+type Append struct {
+	Child  Node
+	Parent Node
+}
+
+func (p *Append) Patch(root dom.Element) error {
+	var parent dom.Node
+	if p.Parent != nil {
+		parent = findInDOM(p.Parent, root)
+	} else {
+		parent = root
+	}
+	child := createForDOM(p.Child)
+	parent.AppendChild(child)
+	return nil
+}
+
 type Replace struct {
 	Old Node
 	New Node

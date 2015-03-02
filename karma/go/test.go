@@ -22,6 +22,7 @@ func main() {
 			body = document.QuerySelector("body")
 		}
 	})
+
 	jasmine.AfterEach(func() {
 		body.SetInnerHTML("")
 	})
@@ -53,6 +54,42 @@ func main() {
 			html := `<form method="post"><input type="text" name="firstName"><input type="text" name="lastName"></form>`
 			tree := setUpDOM(html, body)
 			testSelectors(tree, body)
+		})
+	})
+
+	jasmine.Describe("Append patch", func() {
+
+		jasmine.It("works with a single root element", func() {
+			newHTML := "<div></div>"
+			testPatch("", body, newAppendRootPatcher(newHTML), testAppendRootPatch(body, newHTML))
+		})
+
+		jasmine.It("works with a text root", func() {
+			newHTML := "Text"
+			testPatch("", body, newAppendRootPatcher(newHTML), testAppendRootPatch(body, newHTML))
+		})
+
+		jasmine.It("works with a comment root", func() {
+			newHTML := "<!--comment-->"
+			testPatch("", body, newAppendRootPatcher(newHTML), testAppendRootPatch(body, newHTML))
+		})
+
+		jasmine.It("works with nested siblings", func() {
+			testPatch("<ul><li>one</li><li>two</li></ul>", body, func(tree *vdom.Tree) vdom.Patcher {
+				// Create a new tree, which only consists of a new li element
+				// which we want to append
+				newTree, err := vdom.Parse([]byte("<li>three</li>"))
+				jasmine.Expect(err).ToBe(nil)
+				// Create a patch manually
+				return &vdom.Append{
+					Child:  newTree.Roots[0],
+					Parent: tree.Roots[0],
+				}
+			}, func() {
+				// Test that the patch was applied
+				ul := body.ChildNodes()[0].(*dom.HTMLUListElement)
+				jasmine.Expect(ul.InnerHTML()).ToBe("<li>one</li><li>two</li><li>three</li>")
+			})
 		})
 	})
 
@@ -143,7 +180,6 @@ func setUpDOM(html string, body dom.Element) *vdom.Tree {
 	// Parse the html into a virtual tree
 	vtree, err := vdom.Parse([]byte(html))
 	jasmine.Expect(err).ToBe(nil)
-
 	// Add html to the actual DOM
 	body.SetInnerHTML(html)
 	return vtree
@@ -191,12 +227,30 @@ func testPatch(html string, root dom.Element, createPatch func(tree *vdom.Tree) 
 	testPatch()
 }
 
-func newReplaceRootPatcher(newHtml string) func(tree *vdom.Tree) vdom.Patcher {
+func newAppendRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
 	return func(tree *vdom.Tree) vdom.Patcher {
 		// Create a new tree with the given html
-		newTree, err := vdom.Parse([]byte(newHtml))
+		newTree, err := vdom.Parse([]byte(newHTML))
 		jasmine.Expect(err).ToBe(nil)
-		// Return a new patch to the root of the old tree with
+		// Return a new patch to append to the root
+		return &vdom.Append{
+			Child: newTree.Roots[0],
+		}
+	}
+}
+
+func testAppendRootPatch(root dom.Element, expectedHTML string) func() {
+	return func() {
+		jasmine.Expect(root.InnerHTML()).ToBe(expectedHTML)
+	}
+}
+
+func newReplaceRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
+	return func(tree *vdom.Tree) vdom.Patcher {
+		// Create a new tree with the given html
+		newTree, err := vdom.Parse([]byte(newHTML))
+		jasmine.Expect(err).ToBe(nil)
+		// Return a new patch to replace the root of the old tree with
 		// the root of the new tree
 		return &vdom.Replace{
 			Old: tree.Roots[0],
@@ -207,8 +261,7 @@ func newReplaceRootPatcher(newHtml string) func(tree *vdom.Tree) vdom.Patcher {
 
 func newRemoveRootPatcher() func(tree *vdom.Tree) vdom.Patcher {
 	return func(tree *vdom.Tree) vdom.Patcher {
-		// Return a new patch to the root of the old tree with
-		// the root of the new tree
+		// Return a new patch to remove the root from the tree
 		return &vdom.Remove{
 			Node: tree.Roots[0],
 		}
