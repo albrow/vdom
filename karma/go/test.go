@@ -57,7 +57,7 @@ func main() {
 		})
 	})
 
-	jasmine.Describe("Append patch", func() {
+	jasmine.Describe("Append", func() {
 
 		jasmine.It("works with a single root element", func() {
 			testAppendRootPatcher(body, "<div></div>")
@@ -89,7 +89,7 @@ func main() {
 		})
 	})
 
-	jasmine.Describe("Replace patch", func() {
+	jasmine.Describe("Replace", func() {
 
 		jasmine.It("works with a single root element", func() {
 			testReplaceRootPatcher(body, `<div id="old"></div>`, `<div id="new"></div>`)
@@ -121,7 +121,7 @@ func main() {
 		})
 	})
 
-	jasmine.Describe("Remove patch", func() {
+	jasmine.Describe("Remove", func() {
 
 		jasmine.It("works with a single root element", func() {
 			testRemoveRootPatcher(body, "<div></div>")
@@ -146,6 +146,65 @@ func main() {
 			ul := body.ChildNodes()[0].(*dom.HTMLUListElement)
 			jasmine.Expect(ul.InnerHTML()).ToBe("<li>one</li><li>three</li>")
 		})
+	})
+
+	jasmine.Describe("SetAttr", func() {
+
+		jasmine.It("works on a root element", func() {
+			createAndApplyPatcher(body, "<div></div>", func(tree *vdom.Tree) vdom.Patcher {
+				return &vdom.SetAttr{
+					Node: tree.Roots[0],
+					Attr: &vdom.Attr{
+						Name:  "id",
+						Value: "foo",
+					},
+				}
+			})
+			// Test that the patch was applied
+			jasmine.Expect(body.InnerHTML()).ToBe(`<div id="foo"></div>`)
+		})
+
+		jasmine.It("works on a nested element", func() {
+			createAndApplyPatcher(body, "<ul><li>one</li><li>two</li><li>three</li></ul>", func(tree *vdom.Tree) vdom.Patcher {
+				return &vdom.SetAttr{
+					Node: tree.Roots[0].Children()[1],
+					Attr: &vdom.Attr{
+						Name:  "data-value",
+						Value: "two",
+					},
+				}
+			})
+			// Test that the patch was applied
+			ul := body.ChildNodes()[0].(*dom.HTMLUListElement)
+			jasmine.Expect(ul.InnerHTML()).ToBe(`<li>one</li><li data-value="two">two</li><li>three</li>`)
+		})
+	})
+
+	jasmine.Describe("RemoveAttr", func() {
+
+		jasmine.It("works on a root element", func() {
+			createAndApplyPatcher(body, `<div id="foo"></div>`, func(tree *vdom.Tree) vdom.Patcher {
+				return &vdom.RemoveAttr{
+					Node:     tree.Roots[0],
+					AttrName: "id",
+				}
+			})
+			// Test that the patch was applied
+			jasmine.Expect(body.InnerHTML()).ToBe("<div></div>")
+		})
+
+		jasmine.It("works on a nested element", func() {
+			createAndApplyPatcher(body, `<ul><li>one</li><li data-value="two">two</li><li>three</li></ul>`, func(tree *vdom.Tree) vdom.Patcher {
+				return &vdom.RemoveAttr{
+					Node:     tree.Roots[0].Children()[1],
+					AttrName: "data-value",
+				}
+			})
+			// Test that the patch was applied
+			ul := body.ChildNodes()[0].(*dom.HTMLUListElement)
+			jasmine.Expect(ul.InnerHTML()).ToBe("<li>one</li><li>two</li><li>three</li>")
+		})
+
 	})
 }
 

@@ -82,6 +82,28 @@ func (p *Remove) Patch(root dom.Element) error {
 	return nil
 }
 
+type SetAttr struct {
+	Node Node
+	Attr *Attr
+}
+
+func (p *SetAttr) Patch(root dom.Element) error {
+	self := findInDOM(p.Node, root).(dom.Element)
+	self.SetAttribute(p.Attr.Name, p.Attr.Value)
+	return nil
+}
+
+type RemoveAttr struct {
+	Node     Node
+	AttrName string
+}
+
+func (p *RemoveAttr) Patch(root dom.Element) error {
+	self := findInDOM(p.Node, root).(dom.Element)
+	self.RemoveAttribute(p.AttrName)
+	return nil
+}
+
 // findInDOM finds the node in the actual DOM corresponding
 // to the given virtual node, using the given root as a relative
 // starting point.
