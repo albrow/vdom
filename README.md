@@ -26,7 +26,8 @@ change the actual DOM (i.e. not the virtual dom).
 algorithm which compares two trees and returns a patch set which, when applied, would make the two
 trees the same. This connects the parsing and patching components.
 
-Currently, parsing is fully implemented and fairly well tested. I'm working on the patching step now.
+Currently, parsing and patching are fully implemented and fairly well tested.
+I'm working on the final diffing step now.
 
 
 Installing
@@ -97,7 +98,7 @@ func (todo *Todo) Render() error {
 	// Calculate the diff between this render and the last render
 	patches := vdom.Diff(todo.tree, newTree)
 	// Effeciently apply changes to the actual DOM
-	if err := vdom.Patch(todo.Root, patches); err != nil {
+	if err := patches.Patch(todo.Root); err != nil {
 		return err
 	}
 	// Remember the virtual DOM state for the next render to diff against
@@ -150,16 +151,15 @@ run the test script `./test.sh`. You should see an output that looks like this:
 --> running gopherjs tests...
     PASS
     warning: system calls not available, see https://github.com/gopherjs/gopherjs/blob/master/doc/syscalls.md
-    ok  	github.com/albrow/vdom	0.468s
+    ok  	github.com/albrow/vdom	0.480s
 --> running karma tests...
     compiling karma tests to js...
     running tests with karma...
-    [2015-02-28 17:18:43.430] [DEBUG] config - No config file specified.
-    Safari 8.0.3 (Mac OS X 10.10.2): Executed 5 of 5 SUCCESS (0.022 secs / 0.019 secs)
-    Safari 8.0.3 (Mac OS X 10.10.2): Executed 5 of 5 SUCCESS (0.021 secs / 0.019 secs)
-    Firefox 36.0.0 (Mac OS X 10.10): Executed 5 of 5 SUCCESS (0.057 secs / 0.055 secs)
-    Chrome 40.0.2214 (Mac OS X 10.10.2): Executed 5 of 5 SUCCESS (0.046 secs / 0.043 secs)
-    TOTAL: 20 SUCCESS
+    [2015-03-02 16:57:22.360] [DEBUG] config - No config file specified.
+    Safari 8.0.3 (Mac OS X 10.10.2): Executed 20 of 20 SUCCESS (0.04 secs / 0.037 secs)
+    Chrome 40.0.2214 (Mac OS X 10.10.2): Executed 20 of 20 SUCCESS (0.06 secs / 0.055 secs)
+    Firefox 36.0.0 (Mac OS X 10.10): Executed 20 of 20 SUCCESS (0.127 secs / 0.117 secs)
+    TOTAL: 60 SUCCESS
     
 DONE.
 ```
