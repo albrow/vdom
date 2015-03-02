@@ -21,7 +21,7 @@ func TestParse(t *testing.T) {
 			name: "Element root",
 			src:  []byte("<div></div>"),
 			expectedTree: &Tree{
-				Roots: []Node{
+				Children: []Node{
 					&Element{
 						Name: "div",
 					},
@@ -32,7 +32,7 @@ func TestParse(t *testing.T) {
 			name: "Text root",
 			src:  []byte("Hello"),
 			expectedTree: &Tree{
-				Roots: []Node{
+				Children: []Node{
 					&Text{
 						Value: []byte("Hello"),
 					},
@@ -43,7 +43,7 @@ func TestParse(t *testing.T) {
 			name: "Comment root",
 			src:  []byte("<!--comment-->"),
 			expectedTree: &Tree{
-				Roots: []Node{
+				Children: []Node{
 					&Comment{
 						Value: []byte("comment"),
 					},
@@ -54,7 +54,7 @@ func TestParse(t *testing.T) {
 			name: "ul with nested li's",
 			src:  []byte("<ul><li>one</li><li>two</li><li>three</li></ul>"),
 			expectedTree: &Tree{
-				Roots: []Node{
+				Children: []Node{
 					&Element{
 						Name: "ul",
 						children: []Node{
@@ -91,7 +91,7 @@ func TestParse(t *testing.T) {
 			name: "Element with attrs",
 			src:  []byte(`<div class="container" id="main" data-custom-attr="foo"></div>`),
 			expectedTree: &Tree{
-				Roots: []Node{
+				Children: []Node{
 					&Element{
 						Name: "div",
 						Attrs: []Attr{
@@ -107,7 +107,7 @@ func TestParse(t *testing.T) {
 			name: "Script tag with escaped characters",
 			src:  []byte(`<script type="text/javascript">function((){console.log("&lt;Hello brackets&gt;")})()</script>`),
 			expectedTree: &Tree{
-				Roots: []Node{
+				Children: []Node{
 					&Element{
 						Name: "script",
 						Attrs: []Attr{
@@ -126,7 +126,7 @@ func TestParse(t *testing.T) {
 			name: "Form with autoclosed tags",
 			src:  []byte(`<form method="post"><input type="text" name="firstName"><input type="text" name="lastName"></form>`),
 			expectedTree: &Tree{
-				Roots: []Node{
+				Children: []Node{
 					&Element{
 						Name: "form",
 						Attrs: []Attr{
@@ -153,10 +153,10 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
-			name: "Multiple roots",
+			name: "Multiple Children",
 			src:  []byte("<div></div>Hello<!--comment-->"),
 			expectedTree: &Tree{
-				Roots: []Node{
+				Children: []Node{
 					&Element{
 						Name: "div",
 					},
@@ -202,7 +202,7 @@ func TestHTML(t *testing.T) {
 			src:  []byte("<div></div>"),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte("<div></div>")
-				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root element")
+				return expectHTMLEquals(expectedHTML, tree.Children[0].HTML(), "root element")
 			},
 		},
 		{
@@ -210,7 +210,7 @@ func TestHTML(t *testing.T) {
 			src:  []byte("Hello"),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte("Hello")
-				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root text node")
+				return expectHTMLEquals(expectedHTML, tree.Children[0].HTML(), "root text node")
 			},
 		},
 		{
@@ -218,7 +218,7 @@ func TestHTML(t *testing.T) {
 			src:  []byte("<!--comment-->"),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte("<!--comment-->")
-				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root comment node")
+				return expectHTMLEquals(expectedHTML, tree.Children[0].HTML(), "root comment node")
 			},
 		},
 		{
@@ -228,11 +228,11 @@ func TestHTML(t *testing.T) {
 				{
 					// Test the root of the tree, the ul element
 					expectedHTML := []byte("<ul><li>one</li><li>two</li><li>three</li></ul>")
-					if err := expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "the root ul element"); err != nil {
+					if err := expectHTMLEquals(expectedHTML, tree.Children[0].HTML(), "the root ul element"); err != nil {
 						return err
 					}
 				}
-				lis := tree.Roots[0].Children()
+				lis := tree.Children[0].Children()
 				{
 					// Test each li element
 					expectedHTML := [][]byte{
@@ -270,7 +270,7 @@ func TestHTML(t *testing.T) {
 			src:  []byte(`<div class="container" id="main" data-custom-attr="foo"></div>`),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := []byte(`<div class="container" id="main" data-custom-attr="foo"></div>`)
-				return expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root element")
+				return expectHTMLEquals(expectedHTML, tree.Children[0].HTML(), "root element")
 			},
 		},
 		{
@@ -280,14 +280,14 @@ func TestHTML(t *testing.T) {
 				{
 					// Test the root element
 					expectedHTML := []byte(`<script type="text/javascript">function((){console.log("<Hello brackets>")})()</script>`)
-					if err := expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root script element"); err != nil {
+					if err := expectHTMLEquals(expectedHTML, tree.Children[0].HTML(), "root script element"); err != nil {
 						return err
 					}
 				}
 				{
 					// Test the text node inside the root element
 					expectedHTML := []byte(`function((){console.log("<Hello brackets>")})()`)
-					if err := expectHTMLEquals(expectedHTML, tree.Roots[0].Children()[0].HTML(), "text node inside script element"); err != nil {
+					if err := expectHTMLEquals(expectedHTML, tree.Children[0].Children()[0].HTML(), "text node inside script element"); err != nil {
 						return err
 					}
 				}
@@ -301,12 +301,12 @@ func TestHTML(t *testing.T) {
 				{
 					// Test the root element
 					expectedHTML := []byte(`<form method="post"><input type="text" name="firstName"><input type="text" name="lastName"></form>`)
-					if err := expectHTMLEquals(expectedHTML, tree.Roots[0].HTML(), "root script element"); err != nil {
+					if err := expectHTMLEquals(expectedHTML, tree.Children[0].HTML(), "root script element"); err != nil {
 						return err
 					}
 				}
 				{
-					inputs := tree.Roots[0].Children()
+					inputs := tree.Children[0].Children()
 					// Test each child input element
 					expectedHTML := [][]byte{
 						[]byte(`<input type="text" name="firstName">`),
@@ -323,7 +323,7 @@ func TestHTML(t *testing.T) {
 			},
 		},
 		{
-			name: "Multiple roots",
+			name: "Multiple Children",
 			src:  []byte("<div></div>Hello<!--comment-->"),
 			testFunc: func(tree *Tree) error {
 				expectedHTML := [][]byte{
@@ -331,7 +331,7 @@ func TestHTML(t *testing.T) {
 					[]byte(`Hello`),
 					[]byte(`<!--comment-->`),
 				}
-				for i, root := range tree.Roots {
+				for i, root := range tree.Children {
 					desc := fmt.Sprintf("root node %d of type %T", i, root)
 					if err := expectHTMLEquals(expectedHTML[i], root.HTML(), desc); err != nil {
 						return err
@@ -382,7 +382,7 @@ func TestInnerHTML(t *testing.T) {
 			src:  []byte("<div></div>"),
 			testFunc: func(tree *Tree) error {
 				expectedInner := []byte("")
-				el := tree.Roots[0].(*Element)
+				el := tree.Children[0].(*Element)
 				return expectInnerHTMLEquals(expectedInner, el.InnerHTML(), "root element")
 			},
 		},
@@ -393,12 +393,12 @@ func TestInnerHTML(t *testing.T) {
 				{
 					// Test the root of the tree, the ul element
 					expectedInner := []byte("<li>one</li><li>two</li><li>three</li>")
-					el := tree.Roots[0].(*Element)
+					el := tree.Children[0].(*Element)
 					if err := expectInnerHTMLEquals(expectedInner, el.InnerHTML(), "the root ul element"); err != nil {
 						return err
 					}
 				}
-				lis := tree.Roots[0].Children()
+				lis := tree.Children[0].Children()
 				{
 					// Test each li element
 					expectedInner := [][]byte{
@@ -422,7 +422,7 @@ func TestInnerHTML(t *testing.T) {
 			src:  []byte(`<div><div class="container" id="main" data-custom-attr="foo"></div></div>`),
 			testFunc: func(tree *Tree) error {
 				expectedInner := []byte(`<div class="container" id="main" data-custom-attr="foo"></div>`)
-				el := tree.Roots[0].(*Element)
+				el := tree.Children[0].(*Element)
 				return expectInnerHTMLEquals(expectedInner, el.InnerHTML(), "root element")
 			},
 		},
@@ -431,7 +431,7 @@ func TestInnerHTML(t *testing.T) {
 			src:  []byte(`<script type="text/javascript">function((){console.log("&lt;Hello brackets&gt;")})()</script>`),
 			testFunc: func(tree *Tree) error {
 				expectedInner := []byte(`function((){console.log("<Hello brackets>")})()`)
-				el := tree.Roots[0].(*Element)
+				el := tree.Children[0].(*Element)
 				if err := expectInnerHTMLEquals(expectedInner, el.InnerHTML(), "root script element"); err != nil {
 					return err
 				}
@@ -445,13 +445,13 @@ func TestInnerHTML(t *testing.T) {
 				{
 					// Test the root element
 					expectedInner := []byte(`<input type="text" name="firstName"><input type="text" name="lastName">`)
-					el := tree.Roots[0].(*Element)
+					el := tree.Children[0].(*Element)
 					if err := expectInnerHTMLEquals(expectedInner, el.InnerHTML(), "root script element"); err != nil {
 						return err
 					}
 				}
 				{
-					inputs := tree.Roots[0].Children()
+					inputs := tree.Children[0].Children()
 					// Test each child input element
 					for i, input := range inputs {
 						el := input.(*Element)
@@ -505,7 +505,7 @@ func TestSelector(t *testing.T) {
 			name: "Element root",
 			src:  []byte("<div></div>"),
 			testFunc: func(tree *Tree) error {
-				el := tree.Roots[0].(*Element)
+				el := tree.Children[0].(*Element)
 				return expectSelectorEquals(el, "*:nth-child(1)", "root element")
 			},
 		},
@@ -515,12 +515,12 @@ func TestSelector(t *testing.T) {
 			testFunc: func(tree *Tree) error {
 				{
 					// Test the root of the tree, the ul element
-					el := tree.Roots[0].(*Element)
+					el := tree.Children[0].(*Element)
 					if err := expectSelectorEquals(el, "*:nth-child(1)", "the root ul element"); err != nil {
 						return err
 					}
 				}
-				lis := tree.Roots[0].Children()
+				lis := tree.Children[0].Children()
 				{
 					// Test each child li element
 					for i, li := range lis {
@@ -541,13 +541,13 @@ func TestSelector(t *testing.T) {
 			testFunc: func(tree *Tree) error {
 				{
 					// Test the root element
-					el := tree.Roots[0].(*Element)
+					el := tree.Children[0].(*Element)
 					if err := expectSelectorEquals(el, "*:nth-child(1)", "the root ul element"); err != nil {
 						return err
 					}
 				}
 				{
-					inputs := tree.Roots[0].Children()
+					inputs := tree.Children[0].Children()
 					// Test each child input element
 					for i, input := range inputs {
 						el := input.(*Element)

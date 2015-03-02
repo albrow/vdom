@@ -88,8 +88,8 @@ func main() {
 				jasmine.Expect(err).ToBe(nil)
 				// Create a patch manually
 				return &vdom.Append{
-					Child:  newTree.Roots[0],
-					Parent: tree.Roots[0],
+					Child:  newTree.Children[0],
+					Parent: tree.Children[0],
 				}
 			})
 			// Test that the patch was applied
@@ -122,8 +122,8 @@ func main() {
 				jasmine.Expect(err).ToBe(nil)
 				// Create a patch manually
 				return &vdom.Replace{
-					Old: tree.Roots[0].Children()[0],
-					New: newTree.Roots[0],
+					Old: tree.Children[0].Children()[0],
+					New: newTree.Children[0],
 				}
 			})
 			// Test that the patch was applied
@@ -151,7 +151,7 @@ func main() {
 		jasmine.It("works with nested siblings", func() {
 			createAndApplyPatcher(body, "<ul><li>one</li><li>two</li><li>three</li></ul>", func(tree *vdom.Tree) vdom.Patcher {
 				return &vdom.Remove{
-					Node: tree.Roots[0].Children()[1],
+					Node: tree.Children[0].Children()[1],
 				}
 			})
 			// Test that the patch was applied by checking the innerHTML
@@ -168,7 +168,7 @@ func main() {
 		jasmine.It("works on a root element", func() {
 			createAndApplyPatcher(body, "<div></div>", func(tree *vdom.Tree) vdom.Patcher {
 				return &vdom.SetAttr{
-					Node: tree.Roots[0],
+					Node: tree.Children[0],
 					Attr: &vdom.Attr{
 						Name:  "id",
 						Value: "foo",
@@ -182,7 +182,7 @@ func main() {
 		jasmine.It("works on a nested element", func() {
 			createAndApplyPatcher(body, "<ul><li>one</li><li>two</li><li>three</li></ul>", func(tree *vdom.Tree) vdom.Patcher {
 				return &vdom.SetAttr{
-					Node: tree.Roots[0].Children()[1],
+					Node: tree.Children[0].Children()[1],
 					Attr: &vdom.Attr{
 						Name:  "data-value",
 						Value: "two",
@@ -202,7 +202,7 @@ func main() {
 		jasmine.It("works on a root element", func() {
 			createAndApplyPatcher(body, `<div id="foo"></div>`, func(tree *vdom.Tree) vdom.Patcher {
 				return &vdom.RemoveAttr{
-					Node:     tree.Roots[0],
+					Node:     tree.Children[0],
 					AttrName: "id",
 				}
 			})
@@ -213,7 +213,7 @@ func main() {
 		jasmine.It("works on a nested element", func() {
 			createAndApplyPatcher(body, `<ul><li>one</li><li data-value="two">two</li><li>three</li></ul>`, func(tree *vdom.Tree) vdom.Patcher {
 				return &vdom.RemoveAttr{
-					Node:     tree.Roots[0].Children()[1],
+					Node:     tree.Children[0].Children()[1],
 					AttrName: "data-value",
 				}
 			})
@@ -264,7 +264,7 @@ func testSelector(vEl *vdom.Element, root, expectedEl dom.Element) {
 // corresponding nodes in the actual DOM and tests the Selector method
 // for every element.
 func testSelectors(tree *vdom.Tree, root dom.Element) {
-	for i, vRoot := range tree.Roots {
+	for i, vRoot := range tree.Children {
 		if vEl, ok := vRoot.(*vdom.Element); ok {
 			// If vRoot is an element, test its Selector method
 			expectedEl := root.ChildNodes()[i].(dom.Element)
@@ -295,7 +295,7 @@ func newAppendRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
 		jasmine.Expect(err).ToBe(nil)
 		// Return a new patch to append to the root
 		return &vdom.Append{
-			Child: newTree.Roots[0],
+			Child: newTree.Children[0],
 		}
 	}
 }
@@ -318,8 +318,8 @@ func newReplaceRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
 		// Return a new patch to replace the root of the old tree with
 		// the root of the new tree
 		return &vdom.Replace{
-			Old: tree.Roots[0],
-			New: newTree.Roots[0],
+			Old: tree.Children[0],
+			New: newTree.Children[0],
 		}
 	}
 }
@@ -342,7 +342,7 @@ func newRemoveRootPatcher() func(tree *vdom.Tree) vdom.Patcher {
 	return func(tree *vdom.Tree) vdom.Patcher {
 		// Return a new patch to remove the root from the tree
 		return &vdom.Remove{
-			Node: tree.Roots[0],
+			Node: tree.Children[0],
 		}
 	}
 }

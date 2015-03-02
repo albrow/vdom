@@ -66,8 +66,9 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			currentParent.children = append(currentParent.children, el)
 		} else {
 			// There is no current parent, so set the index based on the
-			// number of root nodes we have seen so far for this tree
-			el.index = []int{len(tree.Roots)}
+			// number of first-level child nodes we have seen so far for
+			// this tree
+			el.index = []int{len(tree.Children)}
 		}
 		// Set the srcStart to indicate where in tree.src the html for this element
 		// starts. Since we don't know the exact length of the starting tag (might be extra whitespace
@@ -137,8 +138,9 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			currentParent.children = append(currentParent.children, text)
 		} else {
 			// There is no current parent, so set the index based on the
-			// number of root nodes we have seen so far for this tree
-			text.index = []int{len(tree.Roots)}
+			// number of first-level child nodes we have seen so far for
+			// this tree
+			text.index = []int{len(tree.Children)}
 		}
 		resultingNode = text
 		nextParent = currentParent
@@ -157,8 +159,9 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 			currentParent.children = append(currentParent.children, comment)
 		} else {
 			// There is no current parent, so set the index based on the
-			// number of root nodes we have seen so far for this tree
-			comment.index = []int{len(tree.Roots)}
+			// number of first-level child nodes we have seen so far for
+			// this tree
+			comment.index = []int{len(tree.Children)}
 		}
 		resultingNode = comment
 		nextParent = currentParent
@@ -168,8 +171,9 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		return nil, fmt.Errorf("parse error: found token of type xml.Directive, which is not allowed in html")
 	}
 	if resultingNode != nil && currentParent == nil {
-		// If this node has no parents, it is one of the roots
-		tree.Roots = append(tree.Roots, resultingNode)
+		// If this node has no parents, it is one of the first-level children
+		// of the tree.
+		tree.Children = append(tree.Children, resultingNode)
 	}
 	return nextParent, nil
 }

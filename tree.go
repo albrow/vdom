@@ -8,9 +8,10 @@ import (
 
 // A Tree is a virtual, in-memory representation of a DOM tree
 type Tree struct {
-	Roots  []Node
-	reader *IndexedByteReader
-	src    []byte
+	// Children is the first-level child nodes for the tree
+	Children []Node
+	reader   *IndexedByteReader
+	src      []byte
 }
 
 // HTML returns the html of this tree and recursively its children
@@ -215,11 +216,11 @@ func (c *Comment) Compare(other *Comment) (bool, string) {
 // children. This is so you can construct a comparable tree inside a literal.
 // (You can't set the parent field inside a literal).
 func (t *Tree) Compare(other *Tree) (bool, string) {
-	if len(t.Roots) != len(other.Roots) {
-		return false, fmt.Sprintf("t had %d roots but other had %d", len(t.Roots), len(other.Roots))
+	if len(t.Children) != len(other.Children) {
+		return false, fmt.Sprintf("t had %d first-level children but other had %d", len(t.Children), len(other.Children))
 	}
-	for i, root := range t.Roots {
-		otherRoot := other.Roots[i]
+	for i, root := range t.Children {
+		otherRoot := other.Children[i]
 		if match, msg := CompareNodes(root, otherRoot); !match {
 			return false, msg
 		}
