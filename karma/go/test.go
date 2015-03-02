@@ -60,22 +60,19 @@ func main() {
 	jasmine.Describe("Append patch", func() {
 
 		jasmine.It("works with a single root element", func() {
-			newHTML := "<div></div>"
-			testPatch("", body, newAppendRootPatcher(newHTML), testAppendRootPatch(body, newHTML))
+			testAppendRootPatcher(body, "<div></div>")
 		})
 
 		jasmine.It("works with a text root", func() {
-			newHTML := "Text"
-			testPatch("", body, newAppendRootPatcher(newHTML), testAppendRootPatch(body, newHTML))
+			testAppendRootPatcher(body, "Text")
 		})
 
 		jasmine.It("works with a comment root", func() {
-			newHTML := "<!--comment-->"
-			testPatch("", body, newAppendRootPatcher(newHTML), testAppendRootPatch(body, newHTML))
+			testAppendRootPatcher(body, "<!--comment-->")
 		})
 
 		jasmine.It("works with nested siblings", func() {
-			testPatch("<ul><li>one</li><li>two</li></ul>", body, func(tree *vdom.Tree) vdom.Patcher {
+			createAndApplyPatcher(body, "<ul><li>one</li><li>two</li></ul>", func(tree *vdom.Tree) vdom.Patcher {
 				// Create a new tree, which only consists of a new li element
 				// which we want to append
 				newTree, err := vdom.Parse([]byte("<li>three</li>"))
@@ -85,48 +82,29 @@ func main() {
 					Child:  newTree.Roots[0],
 					Parent: tree.Roots[0],
 				}
-			}, func() {
-				// Test that the patch was applied
-				ul := body.ChildNodes()[0].(*dom.HTMLUListElement)
-				jasmine.Expect(ul.InnerHTML()).ToBe("<li>one</li><li>two</li><li>three</li>")
 			})
+			// Test that the patch was applied
+			ul := body.ChildNodes()[0].(*dom.HTMLUListElement)
+			jasmine.Expect(ul.InnerHTML()).ToBe("<li>one</li><li>two</li><li>three</li>")
 		})
 	})
 
 	jasmine.Describe("Replace patch", func() {
 
 		jasmine.It("works with a single root element", func() {
-			testPatch(`<div id="old"></div>`, body, newReplaceRootPatcher(`<div id="new"></div>`), func() {
-				// Test that the patch was applied
-				children := body.ChildNodes()
-				jasmine.Expect(len(children)).ToBe(1)
-				div := children[0].(dom.Element)
-				jasmine.Expect(div.ID()).ToEqual("new")
-			})
+			testReplaceRootPatcher(body, `<div id="old"></div>`, `<div id="new"></div>`)
 		})
 
 		jasmine.It("works with a text root", func() {
-			testPatch("Old", body, newReplaceRootPatcher("New"), func() {
-				// Test that the patch was applied
-				children := body.ChildNodes()
-				jasmine.Expect(len(children)).ToBe(1)
-				textNode := children[0].(*dom.Text)
-				jasmine.Expect(textNode.NodeValue()).ToBe("New")
-			})
+			testReplaceRootPatcher(body, "Old", "New")
 		})
 
 		jasmine.It("works with a comment root", func() {
-			testPatch("<!--old-->", body, newReplaceRootPatcher("<!--new-->"), func() {
-				// Test that the patch was applied
-				children := body.ChildNodes()
-				jasmine.Expect(len(children)).ToBe(1)
-				commentNode := body.ChildNodes()[0].(*dom.BasicHTMLElement)
-				jasmine.Expect(commentNode.NodeValue()).ToEqual("new")
-			})
+			testReplaceRootPatcher(body, "<!--old-->", "<!--new-->")
 		})
 
 		jasmine.It("works with nested siblings", func() {
-			testPatch("<ul><li>one</li><li>two</li><li>three</li></ul>", body, func(tree *vdom.Tree) vdom.Patcher {
+			createAndApplyPatcher(body, "<ul><li>one</li><li>two</li><li>three</li></ul>", func(tree *vdom.Tree) vdom.Patcher {
 				// Create a new tree, which only consists of one of the lis
 				// We want to change it from one to uno
 				newTree, err := vdom.Parse([]byte("<li>uno</li>"))
@@ -136,39 +114,37 @@ func main() {
 					Old: tree.Roots[0].Children()[0],
 					New: newTree.Roots[0],
 				}
-			}, func() {
-				// Test that the patch was applied
-				ul := body.ChildNodes()[0].(*dom.HTMLUListElement)
-				jasmine.Expect(ul.InnerHTML()).ToBe("<li>uno</li><li>two</li><li>three</li>")
 			})
+			// Test that the patch was applied
+			ul := body.ChildNodes()[0].(*dom.HTMLUListElement)
+			jasmine.Expect(ul.InnerHTML()).ToBe("<li>uno</li><li>two</li><li>three</li>")
 		})
 	})
 
 	jasmine.Describe("Remove patch", func() {
 
 		jasmine.It("works with a single root element", func() {
-			testPatch("<div></div>", body, newRemoveRootPatcher(), testRemoveRootPatch(body))
+			testRemoveRootPatcher(body, "<div></div>")
 		})
 
 		jasmine.It("works with a text root", func() {
-			testPatch("Text", body, newRemoveRootPatcher(), testRemoveRootPatch(body))
+			testRemoveRootPatcher(body, "Text")
 		})
 
 		jasmine.It("works with a comment root", func() {
-			testPatch("<!--comment-->", body, newRemoveRootPatcher(), testRemoveRootPatch(body))
+			testRemoveRootPatcher(body, "<!--comment-->")
 		})
 
 		jasmine.It("works with nested siblings", func() {
-			testPatch("<ul><li>one</li><li>two</li><li>three</li></ul>", body, func(tree *vdom.Tree) vdom.Patcher {
+			createAndApplyPatcher(body, "<ul><li>one</li><li>two</li><li>three</li></ul>", func(tree *vdom.Tree) vdom.Patcher {
 				return &vdom.Remove{
 					Node: tree.Roots[0].Children()[1],
 				}
-			}, func() {
-				// Test that the patch was applied by checking the innerHTML
-				// property of the ul node.
-				ul := body.ChildNodes()[0].(*dom.HTMLUListElement)
-				jasmine.Expect(ul.InnerHTML()).ToBe("<li>one</li><li>three</li>")
 			})
+			// Test that the patch was applied by checking the innerHTML
+			// property of the ul node.
+			ul := body.ChildNodes()[0].(*dom.HTMLUListElement)
+			jasmine.Expect(ul.InnerHTML()).ToBe("<li>one</li><li>three</li>")
 		})
 	})
 }
@@ -215,7 +191,7 @@ func testSelectors(tree *vdom.Tree, root dom.Element) {
 	}
 }
 
-func testPatch(html string, root dom.Element, createPatch func(tree *vdom.Tree) vdom.Patcher, testPatch func()) {
+func createAndApplyPatcher(root dom.Element, html string, createPatch func(tree *vdom.Tree) vdom.Patcher) {
 	// Parse some source html into a tree
 	tree := setUpDOM(html, root)
 	// Create the patch using the provided function
@@ -223,8 +199,6 @@ func testPatch(html string, root dom.Element, createPatch func(tree *vdom.Tree) 
 	// Apply the patch using the provided root
 	err := patch.Patch(root)
 	jasmine.Expect(err).ToBe(nil)
-	// Test the patch using the provided function
-	testPatch()
 }
 
 func newAppendRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
@@ -239,10 +213,9 @@ func newAppendRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
 	}
 }
 
-func testAppendRootPatch(root dom.Element, expectedHTML string) func() {
-	return func() {
-		jasmine.Expect(root.InnerHTML()).ToBe(expectedHTML)
-	}
+func testAppendRootPatcher(root dom.Element, newHTML string) {
+	createAndApplyPatcher(root, "", newAppendRootPatcher(newHTML))
+	jasmine.Expect(root.InnerHTML()).ToBe(newHTML)
 }
 
 func newReplaceRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
@@ -259,6 +232,14 @@ func newReplaceRootPatcher(newHTML string) func(tree *vdom.Tree) vdom.Patcher {
 	}
 }
 
+func testReplaceRootPatcher(root dom.Element, oldHTML string, newHTML string) {
+	createAndApplyPatcher(root, oldHTML, newReplaceRootPatcher(newHTML))
+	// Test that the patch was applied
+	children := root.ChildNodes()
+	jasmine.Expect(len(children)).ToBe(1)
+	jasmine.Expect(root.InnerHTML()).ToBe(newHTML)
+}
+
 func newRemoveRootPatcher() func(tree *vdom.Tree) vdom.Patcher {
 	return func(tree *vdom.Tree) vdom.Patcher {
 		// Return a new patch to remove the root from the tree
@@ -268,11 +249,10 @@ func newRemoveRootPatcher() func(tree *vdom.Tree) vdom.Patcher {
 	}
 }
 
-func testRemoveRootPatch(root dom.Element) func() {
-	return func() {
-		// Test that the patch was applied by testing that the
-		// root has no children
-		children := root.ChildNodes()
-		jasmine.Expect(len(children)).ToBe(0)
-	}
+func testRemoveRootPatcher(root dom.Element, html string) {
+	createAndApplyPatcher(root, html, newRemoveRootPatcher())
+	// Test that the patch was applied by testing that the
+	// root has no children
+	children := root.ChildNodes()
+	jasmine.Expect(len(children)).ToBe(0)
 }
