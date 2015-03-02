@@ -184,48 +184,68 @@ func main() {
 			document.QuerySelector("body").RemoveChild(sandbox)
 		})
 
-		jasmine.It("can be applied directly", func() {
+		jasmine.It("works with a single root element", func() {
 			// Parse some source html into a tree
-			html := `<div><div id="remove-me"></div></div>`
+			html := `<div></div>`
 			tree := setUpDOM(html, sandbox)
-
 			// Create a patch manually
 			patch := vdom.Remove{
-				Node: tree.Roots[0].Children()[0],
+				Node: tree.Roots[0],
 			}
-
 			// Apply the patch with sandbox as the root
 			err := patch.Patch(sandbox)
 			jasmine.Expect(err).ToEqual(nil)
-
 			// Test that the patch was applied
-			div := sandbox.ChildNodes()[0]
-			numChildren := len(div.ChildNodes())
-			jasmine.Expect(numChildren).ToBe(0)
-			jasmine.Expect(sandbox.InnerHTML()).ToBe("<div></div>")
+			children := sandbox.ChildNodes()
+			jasmine.Expect(len(children)).ToBe(0)
 		})
 
-		jasmine.It("can be applied as part of a patch set", func() {
+		jasmine.It("works with a text root", func() {
 			// Parse some source html into a tree
-			html := `<div><div id="remove-me"></div></div>`
+			html := "Text"
 			tree := setUpDOM(html, sandbox)
-
-			// Create a patch set manually
-			patchSet := vdom.PatchSet{
-				&vdom.Remove{
-					Node: tree.Roots[0].Children()[0],
-				},
+			// Create a patch manually
+			patch := vdom.Remove{
+				Node: tree.Roots[0],
 			}
-
 			// Apply the patch set with sandbox as the root
-			err := patchSet.Patch(sandbox)
+			err := patch.Patch(sandbox)
 			jasmine.Expect(err).ToEqual(nil)
-
 			// Test that the patch was applied
-			div := sandbox.ChildNodes()[0]
-			numChildren := len(div.ChildNodes())
-			jasmine.Expect(numChildren).ToBe(0)
-			jasmine.Expect(sandbox.InnerHTML()).ToBe("<div></div>")
+			children := sandbox.ChildNodes()
+			jasmine.Expect(len(children)).ToBe(0)
+		})
+
+		jasmine.It("works with a comment root", func() {
+			// Parse some source html into a tree
+			html := "<!--comment-->"
+			tree := setUpDOM(html, sandbox)
+			// Create a patch manually
+			patch := vdom.Remove{
+				Node: tree.Roots[0],
+			}
+			// Apply the patch set with sandbox as the root
+			err := patch.Patch(sandbox)
+			jasmine.Expect(err).ToEqual(nil)
+			// Test that the patch was applied
+			children := sandbox.ChildNodes()
+			jasmine.Expect(len(children)).ToBe(0)
+		})
+
+		jasmine.It("works with nested siblings", func() {
+			// Parse some source html into a tree
+			html := "<ul><li>one</li><li>two</li><li>three</li></ul>"
+			tree := setUpDOM(html, sandbox)
+			// Create a patch manually
+			patch := vdom.Remove{
+				Node: tree.Roots[0].Children()[1],
+			}
+			// Apply the patch set with sandbox as the root
+			err := patch.Patch(sandbox)
+			jasmine.Expect(err).ToEqual(nil)
+			// Test that the patch was applied
+			ul := sandbox.ChildNodes()[0].(*dom.HTMLUListElement)
+			jasmine.Expect(ul.InnerHTML()).ToBe("<li>one</li><li>three</li>")
 		})
 	})
 }

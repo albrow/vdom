@@ -31,6 +31,40 @@ func (ps PatchSet) Patch(root dom.Element) error {
 	return nil
 }
 
+type Replace struct {
+	Old Node
+	New Node
+}
+
+func (p *Replace) Patch(root dom.Element) error {
+	var parent dom.Node
+	if p.Old.Parent() != nil {
+		parent = findInDOM(p.Old.Parent(), root)
+	} else {
+		parent = root
+	}
+	oldChild := findInDOM(p.Old, root)
+	newChild := createForDOM(p.New)
+	parent.ReplaceChild(newChild, oldChild)
+	return nil
+}
+
+type Remove struct {
+	Node Node
+}
+
+func (p *Remove) Patch(root dom.Element) error {
+	var parent dom.Node
+	if p.Node.Parent() != nil {
+		parent = findInDOM(p.Node.Parent(), root)
+	} else {
+		parent = root
+	}
+	self := findInDOM(p.Node, root)
+	parent.RemoveChild(self)
+	return nil
+}
+
 // findInDOM finds the node in the actual DOM corresponding
 // to the given virtual node, using the given root as a relative
 // starting point.
@@ -66,38 +100,4 @@ func createForDOM(node Node) dom.Node {
 		msg := fmt.Sprintf("Don't know how to create node for type %T", node)
 		panic(msg)
 	}
-}
-
-type Replace struct {
-	Old Node
-	New Node
-}
-
-func (p *Replace) Patch(root dom.Element) error {
-	var parent dom.Node
-	if p.Old.Parent() != nil {
-		parent = findInDOM(p.Old.Parent(), root)
-	} else {
-		parent = root
-	}
-	oldChild := findInDOM(p.Old, root)
-	newChild := createForDOM(p.New)
-	parent.ReplaceChild(newChild, oldChild)
-	return nil
-}
-
-type Remove struct {
-	Node Node
-}
-
-func (p *Remove) Patch(root dom.Element) error {
-	switch p.Node.(type) {
-	case (*Element):
-		vEl := p.Node.(*Element)
-		el := root.QuerySelector(vEl.Selector())
-		el.ParentNode().RemoveChild(el)
-	default:
-		return fmt.Errorf("Don't know how to apply Remove patch with Node of type %T", p.Node)
-	}
-	return nil
 }
