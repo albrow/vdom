@@ -3,14 +3,11 @@ package main
 import (
 	"github.com/JohannWeging/jasmine"
 	"github.com/albrow/vdom"
-	"github.com/gopherjs/gopherjs/js"
-	"github.com/gopherjs/jquery"
 	"honnef.co/go/js/dom"
 )
 
 var (
 	document = dom.GetWindow().Document()
-	jq       = jquery.NewJQuery
 )
 
 func main() {
@@ -220,15 +217,13 @@ func setUpDOM(html string, body dom.Element) *vdom.Tree {
 	return vtree
 }
 
-func expectExistsInDom(el dom.Element) {
-	jqEl := jq(el)
-	js.Global.Call("expect", jqEl).Call("toExist")
-	js.Global.Call("expect", jqEl).Call("toBeInDOM")
+func expectExistsInDOM(el dom.Element) {
+	jasmine.Expect(document.Contains(el)).ToBe(true)
 }
 
 func testSelector(vEl *vdom.Element, root, expectedEl dom.Element) {
 	gotEl := root.QuerySelector(vEl.Selector())
-	expectExistsInDom(gotEl)
+	expectExistsInDOM(gotEl)
 	jasmine.Expect(gotEl).ToEqual(expectedEl)
 	// Test vEl's children recursively
 	for i, vChild := range vEl.Children() {
