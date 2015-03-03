@@ -65,47 +65,41 @@ func recursiveDiff(patches *[]Patcher, nodes, otherNodes []Node) error {
 				continue
 			}
 			// If we've reached here, the elements have the same tag name
-			// Next, we should compare the attributes
-			// TODO: use the attr names as keys to make this comparison
-			// more effecient.
-			numOtherAttrs := len(otherEl.Attrs)
-			numAttrs := len(el.Attrs)
-			minNumAttrs := numOtherAttrs
-			if numOtherAttrs > numAttrs {
-				// otherEl has more attributes than el
-				// We should add the additional attributes.
-				for _, otherAttr := range otherEl.Attrs[numAttrs:] {
-					*patches = append(*patches, &SetAttr{
-						Node: el,
-						Attr: &otherAttr,
-					})
-				}
-				minNumAttrs = numAttrs
-			} else if numAttrs > numOtherAttrs {
-				// el has more attributes than otherEl
-				// We should remove the additional attributes.
-				for _, attr := range el.Attrs[numOtherAttrs:] {
+			// Next, we should compare the attributes...
+			// Any attributes in el that are not in otherEl should be removed
+			otherAttrs := otherEl.AttrMap()
+			attrs := el.AttrMap()
+			for attrName := range attrs {
+				if _, found := otherAttrs[attrName]; !found {
 					*patches = append(*patches, &RemoveAttr{
 						Node:     el,
-						AttrName: attr.Name,
+						AttrName: attrName,
 					})
 				}
-				minNumAttrs = numOtherAttrs
 			}
-			for i := 0; i < minNumAttrs; i++ {
-				// Compare each individual shared attribute
-				otherAttr := otherEl.Attrs[i]
-				attr := el.Attrs[i]
-				if otherAttr.Name != attr.Name || otherAttr.Value != attr.Value {
-					// The attributes don't match. We should replace attr
-					// with other attr
-					*patches = append(*patches, &RemoveAttr{
-						Node:     el,
-						AttrName: attr.Name,
-					})
+			// Now iterate through the attributes in otherEl
+			for name, otherValue := range otherAttrs {
+				value, found := attrs[name]
+				if !found {
+					// The attribute exists in otherEl but not in el,
+					// we should add it.
 					*patches = append(*patches, &SetAttr{
 						Node: el,
-						Attr: &otherAttr,
+						Attr: &Attr{
+							Name:  name,
+							Value: otherValue,
+						},
+					})
+				} else if value != otherValue {
+					// The attribute exists in el but has a differnt value
+					// than it does in otherEl. We should set it to the value
+					// in otherEl.
+					*patches = append(*patches, &SetAttr{
+						Node: el,
+						Attr: &Attr{
+							Name:  name,
+							Value: otherValue,
+						},
 					})
 				}
 			}

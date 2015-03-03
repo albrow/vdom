@@ -84,6 +84,16 @@ func (e *Element) HTML() []byte {
 	}
 }
 
+// AttrMap returns this element's attributes as a map
+// of attribute name to attribute value
+func (e *Element) AttrMap() map[string]string {
+	m := map[string]string{}
+	for _, attr := range e.Attrs {
+		m[attr.Name] = attr.Value
+	}
+	return m
+}
+
 // InnerHTML returns the unescaped html inside of e. So if e
 // is <ul><li>one</li><li>two</li></ul>, it will return
 // <li>one</li><li>two</li>. Since Element is the only type that

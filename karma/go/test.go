@@ -336,6 +336,42 @@ func main() {
 			testDiff(body, "<ul><li>one</li><li>two</li><li>three</li></ul>", "<ul><li>one</li><li>dos</li><li>three</li></ul>")
 		})
 
+		jasmine.It("adds/replaces multiple attributes", func() {
+			// Since the order of attributes can change, we'll have to do this test
+			// manually
+			oldHTML := `<div class="foo" id="bar" data-target="self" name="biz"></div>`
+			newHTML := `<div class="bar" id="foo" name="biz" onClick="doStuff()"></div>`
+			// Parse some source oldHTML into a tree and add it
+			// to the actual DOM
+			tree := setUpDOM(oldHTML, body)
+			// Create a virtual tree with the newHTML
+			newTree, err := vdom.Parse([]byte(newHTML))
+			jasmine.Expect(err).ToBe(nil)
+			// Use the diff function to calculate the difference between
+			// the trees and return a patch set
+			patches, err := vdom.Diff(tree, newTree)
+			jasmine.Expect(err).ToBe(nil)
+			// Apply the patches to the body in the actual DOM
+			err = patches.Patch(body)
+			jasmine.Expect(err).ToBe(nil)
+			// Check that the body now has innerHTML equal to newHTML,
+			// which would indecate the diff and patch set worked as
+			// expected
+			jasmine.Expect(len(body.ChildNodes())).ToBe(1)
+			div := body.ChildNodes()[0].(dom.Element)
+			expectedAttributes := map[string]string{
+				"class":   "bar",
+				"id":      "foo",
+				"name":    "biz",
+				"onClick": "doStuff()",
+			}
+			jasmine.Expect(div.Underlying().Get("attributes").Get("length")).ToBe(len(expectedAttributes))
+			for name, value := range expectedAttributes {
+				jasmine.Expect(div.HasAttribute(name)).ToBe(true)
+				jasmine.Expect(div.GetAttribute(name)).ToBe(value)
+			}
+		})
+
 	})
 }
 
