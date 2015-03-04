@@ -17,16 +17,18 @@ Progress
 --------
 
 vdom is now very close to being feature-complete, and it is pretty rigourously tested. Version
-0.0.1 will be released soon. There are two remaining things to do:
+0.0.1 will be released soon. All that's left to do is benchmark and, if necessary, improve
+performance. Ad hoc testing suggests that it might currently be slower than `setInnerHTML` in
+at least some cases. I plan to fix this if possible.
 
-1. Benchmark and, if necessary, improve performance
-2. Test in different versions of IE
 
-vdom is currently not recommended for production use simply because I don't know how it
-performs yet or whether or not it works in IE. Ad hoc testing suggests that it might
-currently be slower than `setInnerHTML` in at least some cases. I plan to fix this if
-possible. Regarding IE-compatibility, the way I've used the DOM API targets IE8+. However
-I'm not yet sure if all the gopherjs-generated code will work there. 
+Browser Compatibility
+---------------------
+
+vdom is tested with and works with the latest versions of Chrome, Safari, Firefox, and
+Internet Explorer. For windows systems, vdom works only with IE10+. This is because
+gopherjs uses typed arrays, which are not supported by older versions of Internet
+Explorer.
 
 
 Installing
@@ -126,9 +128,8 @@ vdom uses three sets of tests:
    Safari, and Firefox. In the future, major and minor releases will also be tested with different
    versions of Internet Explorer.
 
-There's a script called test.sh to run all these tests in one go. The karma tests are the only ones
-with additional dependencies. If you don't want to run the karma tests, just use `go test .` and
-`gopherjs test .`, and skip the following steps.
+The karma tests are the only ones with additional dependencies. If you don't want to run the karma
+tests, you can skip the following steps.
 
 The dependencies for the karma tests are:
 
@@ -144,8 +145,19 @@ you would install with npm:
 - `sudo npm install -g karma-safari-launcher`
 - `sudo npm install -g karma-firefox-launcher`
 
-Once you have installed all the dependencies, start karma with `karma start karma/karma.conf.js`. Then
-run the test script `./test.sh`. You should see an output that looks like this:
+Once you have installed all the dependencies, start karma with `karma start karma/karma-mac.conf.js` or 
+`karma start karma/karma-windows.conf.js` depending on your operating system. If you are using a unix
+machine, simply copy one of the config files and edit the browsers section as needed.
+
+There's a script called test.sh to run all these tests in one go. If you are on a unix-like system, you
+can run it with `./test.sh`. On windows, you will need to run the different tests individually:
+
+- `go test .`
+- `gopherjs test github.com/albrow/vdom`
+- `gopherjs build karma/go/test.go -o karma/js/test.js`
+- `karma run`
+
+You should see an output that looks like this:
 
 ```
 --> running go tests...

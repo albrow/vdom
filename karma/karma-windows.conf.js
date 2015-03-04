@@ -1,4 +1,4 @@
-// Karma configuration
+// Karma configuration for Windows Operating Systems
 // Generated on Thu Feb 26 2015 22:20:39 GMT-0500 (EST)
 
 module.exports = function(config) {
@@ -56,8 +56,16 @@ module.exports = function(config) {
         browsers: [
             'Chrome',
             'Firefox',
-            'Safari'
+            'IE',
+            'IE10'
         ],
+
+        customLaunchers: {
+            IE10: {
+                base: 'IE',
+                'x-ua-compatible': 'IE=EmulateIE10'
+            }
+        },
 
 
         // Continuous Integration mode
