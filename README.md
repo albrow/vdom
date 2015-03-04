@@ -4,30 +4,29 @@ vdom
 [![GoDoc](https://godoc.org/github.com/albrow/vdom?status.svg)](https://godoc.org/github.com/albrow/vdom)
 
 vdom is a virtual dom implementation written in go which is compatible with
-[gopherjs](http://www.gopherjs.org/). It's inspired by
-[react.js](http://facebook.github.io/react/) but is not a direct port of the
-react virtual dom. The primary purpose of vdom is to improve the performance
-of view rendering in [humble](https://github.com/soroushjp/humble),
-a framework that lets you write frontend web apps in pure go and compile them to
-js to be run in the browser. However, vdom is framework agnostic, and generally
-will work whenever you can render html for your views as a slice of bytes.
+[gopherjs](http://www.gopherjs.org/) and inspired by
+[react.js](http://facebook.github.io/react/). The primary purpose of
+vdom is to improve the performance of view rendering in
+[humble](https://github.com/soroushjp/humble), a framework that lets you write
+frontend web apps in pure go and compile them to js to be run in the browser.
+However, vdom is framework agnostic, and generally will work whenever you can
+render html for your views as a slice of bytes.
+
 
 Progress
 --------
 
-**NOTE:** This is still a work in progress and is not yet fully functional. The virtual dom
-concept is generally split into three parts:
+vdom is now very close to being feature-complete, and it is pretty rigourously tested. Version
+0.0.1 will be released soon. There are two remaining things to do:
 
-1. **Parsing** is the first step. The goal is to read html from an io.Reader and convert it
-into an in-memory tree structure.
-2. **Patching** is the next component. The goal is to be able to apply a specific patch set to
-change the actual DOM (i.e. not the virtual dom). 
-3. **Diffing** is the final (and probably the most difficult) step. The goal is to create a diff
-algorithm which compares two trees and returns a patch set which, when applied, would make the two
-trees the same. This connects the parsing and patching components.
+1. Benchmark and, if necessary, improve performance
+2. Test in different versions of IE
 
-Currently, parsing and patching are fully implemented and fairly well tested.
-I'm working on the final diffing step now.
+vdom is currently not recommended for production use simply because I don't know how it
+performs yet or whether or not it works in IE. Ad hoc testing suggests that it might
+currently be slower than `setInnerHTML` in at least some cases. I plan to fix this if
+possible. Regarding IE-compatibility, the way I've used the DOM API targets IE8+. However
+I'm not yet sure if all the gopherjs-generated code will work there. 
 
 
 Installing
@@ -96,7 +95,10 @@ func (todo *Todo) Render() error {
 		return err
 	}
 	// Calculate the diff between this render and the last render
-	patches := vdom.Diff(todo.tree, newTree)
+	patches, err := vdom.Diff(todo.tree, newTree)
+	if err != nil {
+		return err
+	}
 	// Effeciently apply changes to the actual DOM
 	if err := patches.Patch(todo.Root); err != nil {
 		return err
