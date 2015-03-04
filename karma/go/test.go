@@ -389,8 +389,8 @@ func setUpDOM(html string, body dom.Element) *vdom.Tree {
 
 // expectExistsInDOM invokes jasmine and the dom bindings to check that
 // el exists in the DOM. If it does not, jasmine will report an error.
-func expectExistsInDOM(el dom.Element) {
-	jasmine.Expect(document.Contains(el)).ToBe(true)
+func expectExistsInDOM(root dom.Element, el dom.Element) {
+	jasmine.Expect(root.Contains(el)).ToBe(true)
 }
 
 // testSelector tests the Selector method for vEl and then recursively
@@ -398,7 +398,7 @@ func expectExistsInDOM(el dom.Element) {
 // as well.
 func testSelector(vEl *vdom.Element, root, expectedEl dom.Element) {
 	gotEl := root.QuerySelector(vEl.Selector())
-	expectExistsInDOM(gotEl)
+	expectExistsInDOM(root, gotEl)
 	jasmine.Expect(gotEl).ToEqual(expectedEl)
 	// Test vEl's children recursively
 	for i, vChild := range vEl.Children() {
