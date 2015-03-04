@@ -15,6 +15,7 @@ module.exports = function(config) {
 
         // list of files / patterns to load in the browser
         files: [
+            'js/support/polyfill/*.js', // polyfill for older versions of IE
             'js/test.js'
         ],
 
@@ -57,13 +58,18 @@ module.exports = function(config) {
             'Chrome',
             'Firefox',
             'IE',
-            'IE10'
+            'IE10',
+            'IE9'
         ],
 
         customLaunchers: {
             IE10: {
                 base: 'IE',
                 'x-ua-compatible': 'IE=EmulateIE10'
+            },
+            IE9: {
+                base: 'IE',
+                'x-ua-compatible': 'IE=EmulateIE9'
             }
         },
 

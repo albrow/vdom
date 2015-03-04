@@ -25,10 +25,11 @@ at least some cases. I plan to fix this if possible.
 Browser Compatibility
 ---------------------
 
-vdom is tested with and works with the latest versions of Chrome, Safari, Firefox, and
-Internet Explorer. For windows systems, vdom works only with IE10+. This is because
-gopherjs uses typed arrays, which are not supported by older versions of Internet
-Explorer.
+vdom has been tested and works with IE9+ and the latest versions of Chrome, Safari, and Firefox.
+
+Javascript code generated with gopherjs uses typed arrays, so in order to work with IE9, you will
+need a polyfill. There is one in karma/js/support/polyfill/typedarray.js which is used for the
+karma tests.
 
 
 Installing
