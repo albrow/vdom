@@ -178,7 +178,7 @@ func TestParse(t *testing.T) {
 			t.Errorf("Unexpected error in Parse: %s", err.Error())
 		}
 		// Check that the resulting tree matches what we expect
-		if match, msg := tc.expectedTree.Compare(gotTree); !match {
+		if match, msg := tc.expectedTree.Compare(gotTree, true); !match {
 			t.Errorf("Error in test case %d (%s): HTML was not parsed correctly.\n%s", i, tc.name, msg)
 		}
 	}

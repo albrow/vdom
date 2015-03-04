@@ -128,9 +128,12 @@ func (e *Element) Index() []int {
 // Compare non-recursively compares e to other. It does not check
 // the child nodes since they can be a Node with any underlying type.
 // If you want to compare the parent and children fields, use CompareNodes.
-func (e *Element) Compare(other *Element) (bool, string) {
+func (e *Element) Compare(other *Element, compareAttrs bool) (bool, string) {
 	if e.Name != other.Name {
 		return false, fmt.Sprintf("e.Name was %s but other.Name was %s", e.Name, other.Name)
+	}
+	if !compareAttrs {
+		return true, ""
 	}
 	attrs := e.Attrs
 	otherAttrs := other.Attrs
@@ -225,25 +228,25 @@ func (c *Comment) Compare(other *Comment) (bool, string) {
 // string. NOTE: Comare never checks the parent properties of t's
 // children. This is so you can construct a comparable tree inside a literal.
 // (You can't set the parent field inside a literal).
-func (t *Tree) Compare(other *Tree) (bool, string) {
+func (t *Tree) Compare(other *Tree, compareAttrs bool) (bool, string) {
 	if len(t.Children) != len(other.Children) {
 		return false, fmt.Sprintf("t had %d first-level children but other had %d", len(t.Children), len(other.Children))
 	}
 	for i, root := range t.Children {
 		otherRoot := other.Children[i]
-		if match, msg := CompareNodes(root, otherRoot); !match {
+		if match, msg := CompareNodesRecursive(root, otherRoot, compareAttrs); !match {
 			return false, msg
 		}
 	}
 	return true, ""
 }
 
-// CompareNodes recursively compares n to other. It returns false and a detailed
-// message if n does not equal other. Otherwise, it returns true and an empty
-// string. NOTE: CompareNodes never checks the parent properties of n or n's
-// children. This is so you can construct a comparable tree inside a literal.
+// CompareNodes non-recursively compares n to other. It returns false and
+// a detailed message if n does not equal other. Otherwise, it returns true and
+// an empty string. NOTE: CompareNodes never checks the parent properties of n
+// or n's children. This is so you can construct a comparable tree inside a literal.
 // (You can't set the parent field inside a literal).
-func CompareNodes(n Node, other Node) (bool, string) {
+func CompareNodes(n Node, other Node, compareAttrs bool) (bool, string) {
 	if reflect.TypeOf(n) != reflect.TypeOf(other) {
 		return false, fmt.Sprintf("n has underlying type %T but the other node has underlying type %T", n, other)
 	}
@@ -251,7 +254,7 @@ func CompareNodes(n Node, other Node) (bool, string) {
 	case *Element:
 		el := n.(*Element)
 		otherEl := other.(*Element)
-		if match, msg := el.Compare(otherEl); !match {
+		if match, msg := el.Compare(otherEl, compareAttrs); !match {
 			return false, msg
 		}
 	case *Text:
@@ -269,6 +272,18 @@ func CompareNodes(n Node, other Node) (bool, string) {
 	default:
 		return false, fmt.Sprintf("Don't know how to compare n of underlying type %T", n)
 	}
+	return true, ""
+}
+
+// CompareNodesRecursive recursively compares n to other. It returns false and
+// a detailed message if n does not equal other. Otherwise, it returns true and
+// an empty string. NOTE: CompareNodesRecursive never checks the parent properties
+// of n or n's children. This is so you can construct a comparable tree inside a
+// literal. (You can't set the parent field inside a literal).
+func CompareNodesRecursive(n Node, other Node, compareAttrs bool) (bool, string) {
+	if match, msg := CompareNodes(n, other, compareAttrs); !match {
+		return false, msg
+	}
 	children := n.Children()
 	otherChildren := other.Children()
 	if len(children) != len(otherChildren) {
@@ -276,7 +291,7 @@ func CompareNodes(n Node, other Node) (bool, string) {
 	}
 	for i, child := range children {
 		otherChild := otherChildren[i]
-		if match, msg := CompareNodes(child, otherChild); !match {
+		if match, msg := CompareNodesRecursive(child, otherChild, compareAttrs); !match {
 			return false, msg
 		}
 	}
