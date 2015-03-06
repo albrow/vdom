@@ -114,67 +114,108 @@ func (todo *Todo) Render() error {
 Testing
 -------
 
-vdom uses three sets of tests:
+vdom uses three sets of tests. If you're on a unix system, you can run all the tests
+in one go with `scripts/test.sh`. The script also compiles the go files to javsacript each
+time it runs. You will still need to install the dependencies for the script to work correctly.
 
-1. Traditional go testing via `go test` which runs the go test files normally. These tests
-	are for code which does not interact with the DOM or depend on js-specific features.
-2. Testing of compiled js code via `gopherjs test`. This compiles the same tests from above
-	to javascript and tests them in a node.js context. It additionally tests some code which
-	might depend on js-specific features and can't be tested with pure go. None of these tests
-	deal with an actual DOM.
-3. Testing code that interacts with the DOM in real browsers. These are a completely separate
-   set of tests that are executed with karma using the jasmine test framework. The test file is
-   located in karma/go/test.go, and is compiled to javascript with gopherjs and then run with 
-   the karma command-line tool. vdom is regularly tested with the latest versions of Chrome,
-   Safari, and Firefox. In the future, major and minor releases will also be tested with different
-   versions of Internet Explorer.
+### Go Tests
 
-The karma tests are the only ones with additional dependencies. If you don't want to run the karma
-tests, you can skip the following steps.
+Traditional go tests can be run with `go test .`. These tests are for code which does not
+interact with the DOM or depend on js-specific features.
 
-The dependencies for the karma tests are:
+### Gopherjs Tests
+
+You can run `gopherjs test github.com/albrow/vdom` to compile the same tests from above
+to javascript and tests them with node.js. This will also test some code which might depend
+on js-specific features (but not the DOM) and can't be tested with pure go. You will need
+to install [node.js](http://nodejs.org/) to run these tests.
+
+### Karma Tests
+
+vdom uses karma and the jasmine test framework to test code that interacts with the DOM in
+real browsers. You will need to install these dependencies:
 
 - [node.js](http://nodejs.org/)
 - [karma](http://karma-runner.github.io/0.12/index.html)
-- [jasmine](https://github.com/jasmine/jasmine#installation)
+- [karma-jasmine](https://github.com/karma-runner/karma-jasmine)
 
-You will also need to install a launcher for each browser you want to test with. You can configure
-these in the karma/karma.conf.js file. By default the browsers are Chrome, Safari, and Firefox. Typically
-you would install with npm:
+Don't forget to also install the karma command line tools with `npm install -g karma-cli`.
 
-- `sudo npm install -g karma-chrome-launcher`
-- `sudo npm install -g karma-safari-launcher`
-- `sudo npm install -g karma-firefox-launcher`
+You will also need to install a launcher for each browser you want to test with, as well as the
+browsers themselves. Typically you install a karma launcher with `npm install -g karma-chrome-launcher`.
+You can edit the config files `karma/test-mac.conf.js` and `karma/test-windows.conf.js` if you want
+to change the browsers that are tested on. The Mac OS config specifies Chrome, Firefox, and Safari, and
+the Windows config specifies IE9-11, Chrome, and Firefox. You only need to install IE11, since the 
+older versions can be tested via emulation.
 
-Once you have installed all the dependencies, start karma with `karma start karma/karma-mac.conf.js` or 
-`karma start karma/karma-windows.conf.js` depending on your operating system. If you are using a unix
-machine, simply copy one of the config files and edit the browsers section as needed.
+Once you have installed all the dependencies, start karma with `karma start karma/test-mac.conf.js` or 
+`karma start karma/test-windows.conf.js` depending on your operating system. If you are using a unix
+machine, simply copy one of the config files and edit the browsers section as needed. Once karma is
+running, you can keep it running in between tests.
 
-There's a script called test.sh to run all these tests in one go. If you are on a unix-like system, you
-can run it with `./test.sh`. On windows, you will need to run the different tests individually:
-
-- `go test .`
-- `gopherjs test github.com/albrow/vdom`
-- `gopherjs build karma/go/test.go -o karma/js/test.js`
-- `karma run`
-
-You should see an output that looks like this:
+Next you need to compile the test.go file to javascript so it can run in the browsers:
 
 ```
---> running go tests...
-    ok  	github.com/albrow/vdom	0.006s
---> running gopherjs tests...
-    PASS
-    warning: system calls not available, see https://github.com/gopherjs/gopherjs/blob/master/doc/syscalls.md
-    ok  	github.com/albrow/vdom	0.480s
---> running karma tests...
-    compiling karma tests to js...
-    running tests with karma...
-    [2015-03-02 16:57:22.360] [DEBUG] config - No config file specified.
-    Safari 8.0.3 (Mac OS X 10.10.2): Executed 20 of 20 SUCCESS (0.04 secs / 0.037 secs)
-    Chrome 40.0.2214 (Mac OS X 10.10.2): Executed 20 of 20 SUCCESS (0.06 secs / 0.055 secs)
-    Firefox 36.0.0 (Mac OS X 10.10): Executed 20 of 20 SUCCESS (0.127 secs / 0.117 secs)
-    TOTAL: 60 SUCCESS
-    
-DONE.
+gopherjs build karma/go/test.go -o karma/js/test.js
+```
+
+Finally run the tests:
+
+```
+karma run
+```
+
+Benchmarking
+------------
+
+vdom uses three sets of benchmarks. If you're on a unix system, you can run all the benchmarks
+in one go with `scripts/bench.sh`. The script also compiles the go files to javsacript each
+time it runs. You will still need to install the dependencies for the script to work correctly.
+
+**NOTE:** There are some additional dependencies for benchmarking that are not needed for testing.
+
+### Go Benchmarks
+
+Traditional go benchmarks can be run with `go test -bench . -run none`. I don't expect you
+to be using vdom in a pure go context (but there's nothing stopping you from doing so!), so
+these tests mainly serve as a comparison to the gopherjs benchmarks. It also helps with
+catching obvious performance problems early.
+
+### Gopherjs Benchmarks
+
+To compile the library to javascript and benchmark it with node.js, you can run
+`gopherjs test github.com/albrow/vdom --bench=. --run=none`. These benchmarks are only
+for code that doesn't interact directly with the DOM. You will need to install
+[node.js](http://nodejs.org/) to run these benchmarks.
+
+### Karma Benchmarks
+
+vdom uses karma and benchmark.js to test code that interacts with the DOM in real browsers.
+You will need to install these dependencies:
+
+- [node.js](http://nodejs.org/)
+- [karma](http://karma-runner.github.io/0.12/index.html)
+- [karma-benchmark](https://github.com/JamieMason/karma-benchmark)
+
+Don't forget to also install the karma command line tools with `npm install -g karma-cli`.
+
+Just like with the tests, you will need to install a launcher for each browser you want to test with.
+
+Once you have installed all the dependencies, start karma with `karma start karma/bench-mac.conf.js` or 
+`karma start karma/bench-windows.conf.js` depending on your operating system. We have to use
+different config files because of a [limitation of karma-benchmark](https://github.com/JamieMason/karma-benchmark/issues/7).
+You will probably want to kill karma and restart it if you were running it with the test configuration.
+If you are using a unix machine, simply copy one of the config files and edit the browsers section as
+needed. Once karma is running, you can keep it running in between benchmarks.
+
+Next you need to compile the bench.go file to javascript so it can run in the browsers:
+
+```
+gopherjs build karma/go/bench.go -o karma/js/bench.js
+```
+
+Finally run the benchmarks:
+
+```
+karma run
 ```
