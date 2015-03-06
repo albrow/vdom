@@ -1,4 +1,4 @@
-// Karma configuration for testing code that interactis with the DOM on
+// Karma configuration for benchmarking code that interactis with the DOM on
 // Windows Operating Systems
 
 module.exports = function(config) {
@@ -10,13 +10,13 @@ module.exports = function(config) {
 
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-        frameworks: ['jasmine'],
+        frameworks: ['benchmark'],
 
 
         // list of files / patterns to load in the browser
         files: [
             'js/support/polyfill/*.js', // polyfill for older versions of IE
-            'js/test.js'
+            'js/bench.js'
         ],
 
 
@@ -32,7 +32,7 @@ module.exports = function(config) {
         // test results reporter to use
         // possible values: 'dots', 'progress'
         // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-        reporters: ['progress'],
+        reporters: ['benchmark'],
 
 
         // web server port

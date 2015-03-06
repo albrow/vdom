@@ -1,5 +1,5 @@
-// Karma configuration for Mac OS operating systems
-// Generated on Thu Feb 26 2015 22:20:39 GMT-0500 (EST)
+// Karma configuration for testing code that interactis with the DOM on
+// Mac OS X
 
 module.exports = function(config) {
     config.set({
