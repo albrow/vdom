@@ -61,7 +61,6 @@ func changeList(old []byte, n int) []byte {
 // vs. re-rendering via setHTML.
 func benchmarkRenderList(root dom.Element, numItems, numChanges int) {
 	oldHTML := generateList(numItems)
-	root.SetInnerHTML(string(oldHTML))
 	newHTML := changeList(oldHTML, numChanges)
 	oldTree, err := vdom.Parse(oldHTML)
 	if err != nil {
@@ -88,8 +87,8 @@ func benchmarkRenderList(root dom.Element, numItems, numChanges int) {
 			}
 		})
 	}, js.MakeWrapper(map[string]interface{}{
-		"teardown": func() {
-			root.SetInnerHTML("")
+		"setup": func() {
+			root.SetInnerHTML(string(oldHTML))
 		},
 	}))
 }
