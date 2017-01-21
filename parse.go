@@ -59,7 +59,7 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		}
 		if currentParent != nil {
 			// Set the index based on how many children we've seen so far
-			el.index = intAppend(currentParent.index, len(currentParent.children))
+			el.index = append(append([]int(nil), currentParent.index...), len(currentParent.children))
 			// Set this element's parent
 			el.parent = currentParent
 			// Add this element to the currentParent's children
@@ -131,7 +131,7 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		}
 		if currentParent != nil {
 			// Set the index based on how many children we've seen so far
-			text.index = intAppend(currentParent.index, len(currentParent.children))
+			text.index = append(append([]int(nil), currentParent.index...), len(currentParent.children))
 			// Set this text node's parent
 			text.parent = currentParent
 			// Add this text node to the currentParent's children
@@ -152,7 +152,7 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		}
 		if currentParent != nil {
 			// Set the index based on how many children we've seen so far
-			comment.index = intAppend(currentParent.index, len(currentParent.children))
+			comment.index = append(append([]int(nil), currentParent.index...), len(currentParent.children))
 			// Set this comment node's parent
 			comment.parent = currentParent
 			// Add this comment node to the currentParent's children
@@ -204,15 +204,4 @@ func wasAutoClosed(tree *Tree, tagName string) bool {
 	// The tag was autoclosed iff the last bytes to be read
 	// were not the closing tag.
 	return string(tree.reader.buf[start:stop]) != closingTag
-}
-
-// intAppend is a workaround for an apparent bug in GopherJS. Using just
-// append() works fine in regular Go, but in GopherJS it lead to some
-// index slices being modified when they shouldn't. Copying the parent's
-// index explicitly into a new slice seems to fix that issue.
-func intAppend(parentIndex []int, newValue int) []int {
-	index := make([]int, len(parentIndex)+1)
-	copy(index, parentIndex)
-	index[len(index)-1] = newValue
-	return index
 }
