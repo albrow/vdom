@@ -59,7 +59,9 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		}
 		if currentParent != nil {
 			// Set the index based on how many children we've seen so far
-			el.index = append(append([]int(nil), currentParent.index...), len(currentParent.children))
+			el.index = make([]int, len(currentParent.index)+1)
+			copy(el.index, currentParent.index)
+			el.index[len(currentParent.index)] = len(currentParent.children)
 			// Set this element's parent
 			el.parent = currentParent
 			// Add this element to the currentParent's children
@@ -131,7 +133,9 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		}
 		if currentParent != nil {
 			// Set the index based on how many children we've seen so far
-			text.index = append(append([]int(nil), currentParent.index...), len(currentParent.children))
+			text.index = make([]int, len(currentParent.index)+1)
+			copy(text.index, currentParent.index)
+			text.index[len(currentParent.index)] = len(currentParent.children)
 			// Set this text node's parent
 			text.parent = currentParent
 			// Add this text node to the currentParent's children
@@ -152,7 +156,9 @@ func parseToken(tree *Tree, token xml.Token, currentParent *Element) (nextParent
 		}
 		if currentParent != nil {
 			// Set the index based on how many children we've seen so far
-			comment.index = append(append([]int(nil), currentParent.index...), len(currentParent.children))
+			comment.index = make([]int, len(currentParent.index)+1)
+			copy(comment.index, currentParent.index)
+			comment.index[len(currentParent.index)] = len(currentParent.children)
 			// Set this comment node's parent
 			comment.parent = currentParent
 			// Add this comment node to the currentParent's children
