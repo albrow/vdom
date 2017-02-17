@@ -106,19 +106,22 @@ func (p *Remove) Patch(root dom.Element) error {
 
 	// p.Node was removed, so subtract one from the final index for all
 	// siblings that come after it.
-	lastIndex := p.Node.Index()[len(p.Node.Index())-1]
-	for _, sibling := range p.Node.Parent().Children()[lastIndex:] {
-		switch t := sibling.(type) {
-		case *Element:
-			t.index[len(t.index)-1] = t.index[len(t.index)-1] - 1
-		case *Text:
-			t.index[len(t.index)-1] = t.index[len(t.index)-1] - 1
-		case *Comment:
-			t.index[len(t.index)-1] = t.index[len(t.index)-1] - 1
-		default:
-			panic("unreachable")
+	if p.Node.Parent() != nil {
+		lastIndex := p.Node.Index()[len(p.Node.Index())-1]
+		for _, sibling := range p.Node.Parent().Children()[lastIndex:] {
+			switch t := sibling.(type) {
+			case *Element:
+				t.index[len(t.index)-1] = t.index[len(t.index)-1] - 1
+			case *Text:
+				t.index[len(t.index)-1] = t.index[len(t.index)-1] - 1
+			case *Comment:
+				t.index[len(t.index)-1] = t.index[len(t.index)-1] - 1
+			default:
+				panic("unreachable")
+			}
 		}
 	}
+
 	return nil
 }
 
