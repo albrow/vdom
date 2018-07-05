@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/albrow/vdom"
-	"github.com/gopherjs/gopherjs/js"
-	"honnef.co/go/js/dom"
 	"strconv"
 	"strings"
+
+	"github.com/gopherjs/gopherjs/js"
+	"github.com/gowasm/vdom"
+	dom "github.com/yml/go-js-dom"
 )
 
 var (
