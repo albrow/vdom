@@ -1,9 +1,11 @@
+//+build js,wasm
+
 package vdom
 
 import (
 	"fmt"
-	"github.com/gopherjs/gopherjs/js"
-	"honnef.co/go/js/dom"
+	"github.com/gowasm/go-js-dom"
+	"syscall/js"
 )
 
 var document dom.Document
@@ -11,7 +13,7 @@ var document dom.Document
 func init() {
 	// We only want to initialize document if we are running in the browser.
 	// We can detect this by checking if the document is defined.
-	if js.Global != nil && js.Global.Get("document") != js.Undefined {
+	if js.Global() != js.Null() && js.Global().Get("document") != js.Undefined() {
 		document = dom.GetWindow().Document()
 	}
 }
