@@ -13,14 +13,16 @@ However, vdom is framework agnostic, and generally will work whenever you can
 render html for your views as a slice of bytes.
 
 
-Progress
---------
+Development Status
+------------------
 
-vdom is now very close to being feature-complete, and it is pretty rigourously tested. Version
-0.0.1 will be released soon. All that's left to do is benchmark and, if necessary, improve
-performance. Ad hoc testing suggests that it might currently be slower than `setInnerHTML` in
-at least some cases. I plan to fix this if possible.
+vdom is no longer actively maintained. Additionally, ad hoc testing suggests that it might currently
+be slower than `setInnerHTML` in at least some cases.
 
+Most users today will likely want to use WebAssembly instead of GopherJS.
+
+Still, this repo might be a decent starting point for anyone wishing to create a virtual DOM implementation
+in Go.
 
 Browser Compatibility
 ---------------------
