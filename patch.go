@@ -2,8 +2,9 @@ package vdom
 
 import (
 	"fmt"
-	"github.com/gopherjs/gopherjs/js"
-	"honnef.co/go/js/dom"
+
+	"github.com/gopherjs/gopherwasm/js"
+	dom "github.com/gowasm/go-js-dom"
 )
 
 var document dom.Document
@@ -11,7 +12,7 @@ var document dom.Document
 func init() {
 	// We only want to initialize document if we are running in the browser.
 	// We can detect this by checking if the document is defined.
-	if js.Global != nil && js.Global.Get("document") != js.Undefined {
+	if js.Global() != js.Null() && js.Global().Get("document") != js.Undefined() {
 		document = dom.GetWindow().Document()
 	}
 }
@@ -47,22 +48,20 @@ type Append struct {
 // Patch satisfies the Patcher interface and applies the change to the
 // actual DOM.
 func (p *Append) Patch(root dom.Element) error {
-	// fmt.Println("Got parent: ", p.Parent)
-	// fmt.Println("Parent == nil: ", p.Parent == nil)
-	// fmt.Println("Parent != nil: ", p.Parent != nil)
+	fmt.Println("APPEND PATCH")
 	var parent dom.Node
 	if p.Parent != nil {
-		// fmt.Println("Finding parent in DOM")
+		fmt.Println("Finding parent in DOM")
 		parent = findInDOM(p.Parent, root)
 	} else {
-		// fmt.Println("Setting parent as root")
+		fmt.Println("Setting parent as root")
 		parent = root
 	}
-	// fmt.Println("Computed parent: ", parent)
+	fmt.Println("Computed parent: ", parent)
 	child := createForDOM(p.Child)
-	// fmt.Println("Created child: ", child)
+	fmt.Println("Created child: ", child)
 	parent.AppendChild(child)
-	// fmt.Println("Successfully appended")
+	fmt.Println("Successfully appended")
 	return nil
 }
 
@@ -75,6 +74,7 @@ type Replace struct {
 // Patch satisfies the Patcher interface and applies the change to the
 // actual DOM.
 func (p *Replace) Patch(root dom.Element) error {
+	fmt.Println("REPLACE PATCH")
 	var parent dom.Node
 	if p.Old.Parent() != nil {
 		parent = findInDOM(p.Old.Parent(), root)
@@ -95,6 +95,7 @@ type Remove struct {
 // Patch satisfies the Patcher interface and applies the change to the
 // actual DOM.
 func (p *Remove) Patch(root dom.Element) error {
+	fmt.Println("REMOVE PATCH")
 	var parent dom.Node
 	if p.Node.Parent() != nil {
 		parent = findInDOM(p.Node.Parent(), root)
@@ -135,6 +136,7 @@ type SetAttr struct {
 // Patch satisfies the Patcher interface and applies the change to the
 // actual DOM.
 func (p *SetAttr) Patch(root dom.Element) error {
+	fmt.Println("SET ATTR PATCH")
 	self := findInDOM(p.Node, root).(dom.Element)
 	self.SetAttribute(p.Attr.Name, p.Attr.Value)
 	return nil
@@ -150,6 +152,7 @@ type RemoveAttr struct {
 // Patch satisfies the Patcher interface and applies the change to the
 // actual DOM.
 func (p *RemoveAttr) Patch(root dom.Element) error {
+	fmt.Println("REMOVE ATTR PATCH")
 	self := findInDOM(p.Node, root).(dom.Element)
 	self.RemoveAttribute(p.AttrName)
 	return nil
@@ -160,6 +163,8 @@ func (p *RemoveAttr) Patch(root dom.Element) error {
 // starting point.
 func findInDOM(node Node, root dom.Element) dom.Node {
 	el := root.ChildNodes()[node.Index()[0]]
+	fmt.Println("ELEMENT:", el)
+	fmt.Println("NODE.INDEX", node.Index())
 	for _, i := range node.Index()[1:] {
 		el = el.ChildNodes()[i]
 	}
@@ -171,6 +176,7 @@ func findInDOM(node Node, root dom.Element) dom.Node {
 func createForDOM(node Node) dom.Node {
 	switch node.(type) {
 	case *Element:
+		fmt.Println("Creating an element")
 		vEl := node.(*Element)
 		el := document.CreateElement(vEl.Name)
 		for _, attr := range vEl.Attrs {
@@ -179,10 +185,14 @@ func createForDOM(node Node) dom.Node {
 		el.SetInnerHTML(string(vEl.InnerHTML()))
 		return el
 	case *Text:
+
+		fmt.Println("Creating a text")
 		vText := node.(*Text)
 		textNode := document.CreateTextNode(string(vText.Value))
 		return textNode
 	case *Comment:
+
+		fmt.Println("Creating a comment")
 		vComment := node.(*Comment)
 		commentNode := document.Underlying().Call("createComment", string(vComment.Value))
 		return dom.WrapNode(commentNode)

@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/JohannWeging/jasmine"
-	"github.com/albrow/vdom"
-	"honnef.co/go/js/dom"
+	"github.com/gowasm/vdom"
+	dom "github.com/yml/go-js-dom"
 )
 
 var (
